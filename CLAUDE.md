@@ -30,7 +30,7 @@ The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes 
 | `js/core.js` | `window.B`, constants (`H`, `CX`, `CZ`), renderer, scene, camera, OrbitControls, lights, geometry helpers (`box`, `lbox`, `cyl`, `floorRect`, `V`) |
 | `js/materials.js` | Canvas-drawn textures (wood, tiles, turquoise wall tiles, fluted glass, TV screen) and all materials `B.M` |
 | `js/room.js` | Floors, ceiling, the `WALLS` table, windows, entry door, bathroom vitrine + glass door; `B.wall()` |
-| `js/furniture.js` | Bed, nightstands, desk, AC, armchair, coffee table, sofa, alcove closet; `buildKitchen(L)`; wardrobe options `WARDS` + `buildWardrobe(key)` |
+| `js/furniture.js` | Bed, nightstands, furnished desk setup, AC, armchairs, coffee table, sofa, alcove closet; `buildKitchen(L)`; wardrobe options `WARDS` + `buildWardrobe(key)` |
 | `js/bathroom.js` | Shower (raised 15), bronze fixtures, vanity, mirrored medicine cabinet, standard toilet, wall tiles (`cladPanel`), `buildRain(h)`, `buildPerson(height)`, niche shelves |
 | `js/tv.js` | TV sizes, presets (`north` = under the AC, `stairs` = designer's idea), placement, viewing readout, AC gap check |
 | `js/ui.js` | Panel readouts, labels, camera `VIEWS`, door animation, theme sync, all control wiring, draggable TV and click-a-wall placement |
@@ -81,6 +81,7 @@ Chosen by Itay:
 - **Selected wardrobe option: custom IKEA PAX / STORKLINTA**, 249.8 × 37.4 × 201.2 cm, with five hinged oak-look doors and the submitted internal layout. Other wardrobe options remain available.
 - **Kitchenette: fixed 120 wide**, x 170–290, z 578–638, with a coffee machine, sink centred at x 230, and a small dish-drying rack; no cooktop.
 - **Desk: enlarged to 65 × 180** and centred on the east wall segment between the north TV wall and entry door.
+- **Desk setup:** monitor, raised laptop, tablet stand, open notebook, phone stand, pen cup, candle, reed diffuser, stereo speakers and floor subwoofer under the desk.
 - **Toilet: standard floor-mounted model**, with visible tank and no concealed-cistern wall.
 - **Vanity storage: 60 × 40 × 20 cm mirrored cabinet**, centered above the basin and below the bathroom window sill; the mirror door opens with the door toggle.
 - **Upholstery: near-black charcoal** for the sofa and both opposing armchairs.

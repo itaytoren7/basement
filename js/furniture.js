@@ -30,6 +30,93 @@
   // Enlarged desk, centred on the east wall segment between the entry door and north wall
   box(399, 464, 80, 260, 72, 75, M.oak);
   [[401, 405], [458, 462]].forEach(x => [[82, 86], [254, 258]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 72, M.black)));
+
+  // A compact, organized workstation across the long desk top.
+  const deskBlack = std({ color: "#202329", roughness: 0.42 });
+  const screenMat = new THREE.MeshBasicMaterial({ color: "#172537" });
+  const glassMat = new THREE.MeshStandardMaterial({ color: "#a9c2ce", roughness: 0.22, metalness: 0.12 });
+  const screenOnWestFace = (x, y, z, w, h, material) => {
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
+    screen.rotation.y = -Math.PI / 2; // face the chair, westward
+    screen.position.set(x - CX, y, z - CZ); root.add(screen);
+    return screen;
+  };
+
+  // Monitor, stand and broad foot at the back of the desk.
+  box(438, 460, 151, 189, 76, 78, deskBlack);
+  box(452, 456, 167, 173, 78, 101, M.steel);
+  box(455, 460, 146, 194, 98, 128, deskBlack);
+  screenOnWestFace(454.7, 113, 170, 43, 26, screenMat);
+  box(454.6, 454.9, 157, 183, 99, 101, M.steel); // lower bezel accent
+
+  // Laptop lifted on a metal stand, to the left of the main monitor.
+  box(422, 451, 97, 132, 77, 79, M.steel);           // stand foot
+  box(442, 445, 99, 103, 79, 87, M.steel);           // stand supports
+  box(422, 445, 100, 129, 85, 88, deskBlack);        // keyboard deck
+  for (let row = 0; row < 3; row++) for (let key = 0; key < 7; key++) {
+    const x = 425 + row * 5, z = 102 + key * 3.5;
+    box(x, x + 3.2, z, z + 2.5, 88.2, 88.7, M.steel);
+  }
+  box(443, 446, 101, 128, 88, 110, deskBlack);       // raised laptop display
+  screenOnWestFace(442.8, 99, 114.5, 24, 18, screenMat);
+  box(442.7, 443, 108, 121, 88.2, 89.2, M.steel);
+
+  // Tablet on an angled stand at the far end of the desk.
+  box(431, 455, 217, 243, 77, 79, deskBlack);
+  box(438, 446, 220, 240, 79, 94, M.steel);
+  box(446, 449, 220, 240, 87, 115, deskBlack);
+  screenOnWestFace(445.7, 101, 230, 18, 26, screenMat);
+
+  // Open notebook and pen, kept in the clear front-left writing area.
+  box(401, 420, 142, 176, 75.3, 76.2, M.oakLight);
+  box(402, 410, 143, 175, 76.2, 76.6, M.whiteGloss);
+  box(411, 419, 143, 175, 76.2, 76.6, M.whiteGloss);
+  box(410, 411, 143, 175, 76.6, 77, M.groove);        // notebook spine
+  box(404, 417, 158.5, 159.2, 77, 77.8, M.black);     // pen on the page
+
+  // Phone on a small angled stand.
+  box(402, 415, 92, 111, 75.5, 77, deskBlack);
+  box(410, 414, 96, 107, 77, 89, M.steel);
+  box(411, 413, 96, 107, 79, 94, deskBlack);
+  screenOnWestFace(410.7, 86.5, 101.5, 7.5, 13, screenMat);
+
+  // Pen cup, candle and reed diffuser, arranged along the open front edge.
+  cyl(5, 12, 408, 81, 244, M.oakLight);
+  [
+    [405.5, 244, 1.8], [408, 242.5, 2.8], [410.5, 245, 1.2], [412, 243, 2.2],
+  ].forEach(([x, z, h]) => {
+    const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 12 + h, 10), M.black);
+    pen.position.set(x - CX, 87 + h / 2, z - CZ); root.add(pen);
+  });
+  cyl(4.5, 9, 408, 79.5, 188, M.whiteGloss);          // candle body
+  cyl(0.45, 2, 408, 85, 188, M.black);                // wick
+  const flame = new THREE.Mesh(new THREE.SphereGeometry(1.5, 12, 10), std({ color: "#f5a33b", emissive: "#c45a14", emissiveIntensity: 0.45 }));
+  flame.scale.y = 1.8; flame.position.set(408 - CX, 87, 188 - CZ); root.add(flame);
+  const diffuser = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 4.4, 10, 18), glassMat);
+  diffuser.position.set(408 - CX, 80, 211 - CZ); root.add(diffuser);
+  [
+    [405, 210, -0.14], [407, 211, 0.08], [409, 210, -0.05], [411, 212, 0.16], [413, 210, -0.1],
+  ].forEach(([x, z, lean]) => {
+    const reed = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 15, 8), M.oak);
+    reed.position.set(x - CX, 91, z - CZ); reed.rotation.z = lean; root.add(reed);
+  });
+
+  // Compact stereo pair beside the monitor, with drivers aimed toward the chair.
+  [[140, 0], [200, 1]].forEach(([z, side]) => {
+    box(448, 461, z - 6, z + 6, 78, 97, deskBlack);
+    const woofer = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 1, 20), M.black);
+    woofer.rotation.z = Math.PI / 2; woofer.position.set(447.3 - CX, 86, z - CZ); root.add(woofer);
+    const tweeter = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 1, 16), M.steel);
+    tweeter.rotation.z = Math.PI / 2; tweeter.position.set(447.2 - CX, 93, z - CZ); root.add(tweeter);
+  });
+
+  // Subwoofer on the floor beneath the desk, tucked between the desk legs.
+  box(430, 454, 211, 241, 4, 36, deskBlack);
+  const subDriver = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, 1.5, 28), M.black);
+  subDriver.rotation.z = Math.PI / 2; subDriver.position.set(429.2 - CX, 21, 226 - CZ); root.add(subDriver);
+  const subPort = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 1.5, 20), M.steel);
+  subPort.rotation.z = Math.PI / 2; subPort.position.set(429.1 - CX, 9, 226 - CZ); root.add(subPort);
+
   box(357, 391, 150, 190, 43, 47, M.fabric2);
   box(355, 359, 150, 190, 47, 86, M.fabric2);
   [[357, 360], [388, 391]].forEach(x => [[151, 154], [186, 189]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 43, M.black)));
