@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# The designer's plan stays local — the GitHub Pages repo is public
+*.pdf
+
+# editor
+.vscode/*
+!.vscode/extensions.json

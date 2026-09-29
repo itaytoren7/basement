@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>המרתף בתלת־ממד</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app" dir="rtl" lang="he">
+  <aside id="panel" aria-label="אפשרויות המודל">
+    <div class="head">
+      <h1>המרתף בתלת־ממד</h1>
+      <p>נבנה לפי תכנית הבנייה של המעצבת (גיליון TBN01, 24/9/26, קנ״מ 1:50). כל סעיף כאן עונה על שאלה פתוחה מהמכתב שלה.</p>
+      <div class="meta">
+        <span>חדר <b class="num">444×618</b></span>
+        <span>תקרה <b class="num">220</b></span>
+        <span>חדר רחצה <b class="num">299×130</b></span>
+      </div>
+    </div>
+
+    <section class="block" aria-labelledby="h-tv">
+      <span class="eyebrow">סעיף 7 · מיקום הטלוויזיה</span>
+      <h2 id="h-tv">טלוויזיה</h2>
+      <div class="field">
+        <span class="lbl">מיקום</span>
+        <div class="seg" role="radiogroup" aria-label="מיקום טלוויזיה">
+          <input type="radio" name="tvpos" id="tv-north" value="north" checked><label for="tv-north">מתחת למזגן</label>
+          <input type="radio" name="tvpos" id="tv-stairs" value="stairs"><label for="tv-stairs">קיר המדרגות</label>
+          <input type="radio" name="tvpos" id="tv-free" value="free"><label for="tv-free">בלחיצה על קיר</label>
+        </div>
+        <p class="note" id="tvPosNote">על הקיר הצפוני, ממורכז מתחת למזגן, מול הספה.</p>
+        <p class="note" id="tvAcGap" hidden></p>
+      </div>
+      <div class="field">
+        <span class="lbl">גודל מסך</span>
+        <div class="seg" role="radiogroup" aria-label="גודל מסך">
+          <input type="radio" name="tvsize" id="tvs-43" value="43"><label for="tvs-43"><span class="num">43″</span></label>
+          <input type="radio" name="tvsize" id="tvs-50" value="50" checked><label for="tvs-50"><span class="num">50″</span></label>
+          <input type="radio" name="tvsize" id="tvs-55" value="55"><label for="tvs-55"><span class="num">55″</span></label>
+          <input type="radio" name="tvsize" id="tvs-65" value="65"><label for="tvs-65"><span class="num">65″</span></label>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="tvH">גובה מרכז המסך מהרצפה</label>
+        <div class="rangeRow"><input type="range" id="tvH" min="80" max="160" step="5" value="110"><output for="tvH" id="tvHOut" class="num">110 ס״מ</output></div>
+      </div>
+      <table class="readout" aria-label="מרחק וזווית צפייה">
+        <thead><tr><th>מאיפה צופים</th><th>מרחק</th><th>סיבוב ראש</th></tr></thead>
+        <tbody id="tvTable"></tbody>
+      </table>
+      <p class="note">סיבוב ראש: כמה מעלות צריך להסתובב מהכיוון שהמושב פונה אליו. עד 25° נוח, מעל 50° צריך לשבת בזווית.</p>
+    </section>
+
+    <section class="block" aria-labelledby="h-ward">
+      <span class="eyebrow">סעיף 2 · ארון ברוחב 200</span>
+      <h2 id="h-ward">ארון בגדים</h2>
+      <div class="opts" role="radiogroup" aria-label="דגם ארון">
+        <div class="opt"><input type="radio" name="ward" id="w-storklinta" value="storklinta" checked><label for="w-storklinta"><span class="t">IKEA PAX / STORKLINTA</span><span class="p num">2,335 ₪</span><span class="d">200×60×201 · מסגרת לבנה, דלתות בגוון אלון · 4 דלתות פתיחה</span></label></div>
+        <div class="opt"><input type="radio" name="ward" id="w-hasvik" value="hasvik"><label for="w-hasvik"><span class="t">IKEA PAX / HASVIK</span><span class="p num">2,400 ₪</span><span class="d">200×66×201 · אלון מולבן · 2 דלתות הזזה</span></label></div>
+        <div class="opt"><input type="radio" name="ward" id="w-harel" value="harel"><label for="w-harel"><span class="t">ארונות הראל · דגם גיל</span><span class="p num">~3,750 ₪</span><span class="d">200×52.5×213 · אלון מבוקע · 5 דלתות ומגירות חיצוניות</span></label></div>
+        <div class="opt"><input type="radio" name="ward" id="w-carp" value="carp"><label for="w-carp"><span class="t">נגרות עד התקרה</span><span class="p">לפי הצעת נגר</span><span class="d">200×60×220 · עץ בהיר · כמו בשרטוט</span></label></div>
+      </div>
+      <dl class="kv" id="wardKv"></dl>
+    </section>
+
+    <section class="block" aria-labelledby="h-kit">
+      <span class="eyebrow">סעיף 3 · עד 250 ס״מ</span>
+      <h2 id="h-kit">מטבחון</h2>
+      <div class="seg" role="radiogroup" aria-label="אורך מטבחון">
+        <input type="radio" name="kit" id="k-200" value="200"><label for="k-200"><span class="num">200</span> ס״מ</label>
+        <input type="radio" name="kit" id="k-250" value="250" checked><label for="k-250"><span class="num">250</span> ס״מ</label>
+      </div>
+      <p class="note" id="kitNote"></p>
+    </section>
+
+    <section class="block" aria-labelledby="h-bath">
+      <span class="eyebrow">סעיפים 1, 4, 5, 6</span>
+      <h2 id="h-bath">חדר רחצה</h2>
+      <p class="note">חיפוי הקירות: אריחי 15×15 בתכלת־טורקיז, עד התקרה. הברזים במקלחון: ברונזה.</p>
+      <div class="field">
+        <span class="lbl">מסגרת הוויטרינה והדלת</span>
+        <div class="seg" role="radiogroup" aria-label="צבע מסגרת">
+          <input type="radio" name="frame" id="f-white" value="white" checked><label for="f-white">לבנה</label>
+          <input type="radio" name="frame" id="f-black" value="black"><label for="f-black">שחורה</label>
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">זכוכית</span>
+        <div class="seg" role="radiogroup" aria-label="סוג זכוכית">
+          <input type="radio" name="glass" id="g-clear" value="clear"><label for="g-clear">שקופה</label>
+          <input type="radio" name="glass" id="g-fluted" value="fluted" checked><label for="g-fluted">גלינה (מחורצת)</label>
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">קיר מיכל ההדחה</span>
+        <div class="seg" role="radiogroup" aria-label="גובה קיר מיכל ההדחה">
+          <input type="radio" name="cist" id="c-full" value="full" checked><label for="c-full">עד התקרה</label>
+          <input type="radio" name="cist" id="c-120" value="120"><label for="c-120">120 עם מדף</label>
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">ראש גשם, מעל רצפת המקלחון המוגבהת</span>
+        <div class="seg" role="radiogroup" aria-label="גובה ראש גשם">
+          <input type="radio" name="rain" id="r-195" value="195"><label for="r-195"><span class="num">195</span> ס״מ</label>
+          <input type="radio" name="rain" id="r-200" value="200" checked><label for="r-200"><span class="num">200</span> ס״מ</label>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="personH">גובה של מי שמתקלח</label>
+        <div class="rangeRow"><input type="range" id="personH" min="150" max="200" step="1" value="180"><output for="personH" id="personHOut" class="num">180 ס״מ</output></div>
+      </div>
+      <p class="callout" id="rainNote"></p>
+    </section>
+
+    <section class="block" aria-labelledby="h-disp">
+      <h2 id="h-disp">תצוגה</h2>
+      <div class="toggles">
+        <div class="tgl"><input type="checkbox" id="optDoors"><label for="optDoors">דלתות פתוחות</label></div>
+        <div class="tgl"><input type="checkbox" id="optLabels" checked><label for="optLabels">שמות</label></div>
+        <div class="tgl"><input type="checkbox" id="optNew"><label for="optNew"><span><span class="swatch-new"></span>סימון קירות חדשים</span></label></div>
+      </div>
+    </section>
+
+    <p class="foot">המודל להמחשה. קירות, פתחים וריהוט נמדדו מהשרטוט. גובה החלון בחדר, גובה הדלתות, ריצוף וגוונים משוערים. מחירי הארונות מאתרי החנויות בספטמבר 2026.</p>
+  </aside>
+
+  <main id="stage">
+    <canvas id="c" aria-label="מודל תלת־ממדי של המרתף" tabindex="0"></canvas>
+    <div id="labels" aria-hidden="true"></div>
+    <div id="views" role="group" aria-label="נקודות מבט">
+      <button type="button" data-view="over" aria-pressed="true">מבט על</button>
+      <button type="button" data-view="plan" aria-pressed="false">תכנית</button>
+      <button type="button" data-view="entry" aria-pressed="false">מהכניסה</button>
+      <button type="button" data-view="sofa" aria-pressed="false">מהספה</button>
+      <button type="button" data-view="bed" aria-pressed="false">מהמיטה</button>
+      <button type="button" data-view="arm" aria-pressed="false">מהכורסה</button>
+      <button type="button" data-view="kitchen" aria-pressed="false">מטבחון וארון</button>
+      <button type="button" data-view="bath" aria-pressed="false">חדר הרחצה</button>
+    </div>
+    <div id="hint">גררו לסיבוב, גלגלת או צביטה לזום, שתי אצבעות או קליק ימני להזזה.</div>
+    <div id="loading">טוען מודל…</div>
+  </main>
+</div>
+
+<!-- three.js r147: classic (non-module) builds, so the page also works when opened straight from disk (file://) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<!-- Order matters: each file adds to window.B and reads what earlier files added. -->
+<script src="js/core.js"></script>
+<script src="js/materials.js"></script>
+<script src="js/room.js"></script>
+<script src="js/furniture.js"></script>
+<script src="js/bathroom.js"></script>
+<script src="js/tv.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

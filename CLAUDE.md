@@ -1,0 +1,119 @@
+# The BASEment — 3D model of the basement unit
+
+Interactive 3D model of Itay's basement renovation, built from the interior designer's plan so the family can check sizes, layout and finishes before building. It answers the open points in the designer's letter (wardrobe, kitchenette, bathroom vitrine, cistern wall, rain-shower height, TV position).
+
+The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes in English.
+
+## Run it
+
+- Open `index.html` in a browser (double-click works: the page uses classic scripts, no ES modules, no `fetch`).
+- Or serve the folder: `python3 -m http.server 8000` → http://localhost:8000
+- Needs internet: three.js r147 and the fonts load from CDNs (jsDelivr, Google Fonts).
+- Useful in the browser console: `__basement.goView("bath")` (views: over, plan, entry, sofa, bed, arm, kitchen, bath).
+
+## Stack and rules
+
+- Plain HTML + CSS + JS. No build step, no npm, no framework.
+- three.js **r147**, classic builds (`build/three.min.js` + `examples/js/controls/OrbitControls.js`), pinned on jsDelivr. r148+ dropped `examples/js`; upgrading means switching to ES modules and then the page no longer works from `file://` — only do that together with serving over http.
+- Keep it working from `file://`: no `type="module"`, no `fetch`, no imports.
+- All scripts share one global object, `window.B`. Each file is an IIFE that reads what earlier files put on `B` and adds its own exports at the bottom. **Load order matters** (see `index.html`).
+- Every colour in the page UI is a CSS token in `:root` with dark-mode overrides. Don't hardcode colours in components.
+- No environment map in the scene, so keep material `metalness` ≤ ~0.45 or metals render black.
+- UI strings are Hebrew. Numbers use the `num` class (tabular digits).
+
+## Files
+
+| File | What's in it |
+|---|---|
+| `index.html` | Page markup: the options panel (right) and the 3D stage; script tags in load order |
+| `css/styles.css` | All styles, colour tokens, light/dark, phone layout (≤820px) |
+| `js/core.js` | `window.B`, constants (`H`, `CX`, `CZ`), renderer, scene, camera, OrbitControls, lights, geometry helpers (`box`, `lbox`, `cyl`, `floorRect`, `V`) |
+| `js/materials.js` | Canvas-drawn textures (wood, tiles, turquoise wall tiles, fluted glass, TV screen) and all materials `B.M` |
+| `js/room.js` | Floors, ceiling, the `WALLS` table, windows, entry door, bathroom vitrine + glass door; `B.wall()` |
+| `js/furniture.js` | Bed, nightstands, desk, AC, armchair, coffee table, sofa, alcove closet; `buildKitchen(L)`; wardrobe options `WARDS` + `buildWardrobe(key)` |
+| `js/bathroom.js` | Shower (raised 15), bronze fixtures, vanity, toilet, wall tiles (`cladPanel`), `buildCistern(full)`, `buildRain(h)`, `buildPerson(height)`, niche shelves |
+| `js/tv.js` | TV sizes, presets (`north` = under the AC, `stairs` = designer's idea), placement, viewing readout, AC gap check |
+| `js/ui.js` | Panel readouts, labels, camera `VIEWS`, door animation, theme sync, all control wiring, click-a-wall TV placement |
+| `js/main.js` | Initial state (must match the `checked` inputs in `index.html`), resize, render loop |
+| `תכנית ... לעיון בלבד.pdf` | The designer's plan (sheet TBN01, 24/9/26, scale 1:50). The source for every dimension. Git-ignored — do not publish it. |
+
+## Coordinate system (important)
+
+All geometry is written in **plan coordinates, centimetres**, read off the drawing:
+
+- origin = **outer top-left corner** of the building outline on the drawing
+- **x → east** (right on the drawing), **z → south** (down on the drawing), **y → up** (floor 0, ceiling `B.H` = 220)
+- `box(x0, x1, z0, z1, y0, y1, material)` takes plan coordinates; the helpers subtract `CX = 286`, `CZ = 400` to centre the model
+- Exterior walls are 20 thick, new drywall 10. Inner room corner = (20, 20).
+- Use `B.wall(...)` (not `box`) for anything that is a wall, so the TV click-placement can hit it.
+
+## Key dimensions (from the plan)
+
+| Element | Plan coordinates / size |
+|---|---|
+| Main room (inner) | x 20–464, z 20–638 → **444 × 618**, ceiling **220** |
+| North wall | z 0–20; AC unit x 203–298, 186–214 high (pipes into this wall) |
+| West wall window (over the bed) | z 40–200 (160 wide). Sill 130 / top 220 are **assumed** |
+| "Stairs wall" (east) | new drywall x 464–484, z 20–257 (closes an old 237 opening) |
+| Entry door | 90 wide in a new wall at x 473–483, z 330–420, swings into the room; stairs are outside |
+| East alcove | x 473–547, z 485–638, holds a built-in closet (73 × 153) |
+| Bed 140×200 | x 20–220, z 80–220, headboard on the west wall; nightstands z 20–80 and 220–280 |
+| Desk + chair | desk x 404–464, z 20–146 against the stairs wall |
+| Armchair / coffee table / sofa | armchair x 132–208, z 298–383 (faces east); table x 247–327, z 307–382; sofa 150 wide x 201–351, z 430–506 (faces north) |
+| Wardrobe | west wall, **200 wide** z 288–488; **90** clear to the kitchenette |
+| Kitchenette | along the south wall from x 20, **max 250** (option 200), 60 deep z 578–638 |
+| Room ↔ bathroom wall | z 638–648: low wall to 160 + glass vitrine above (x 164–282), post, glass door 72 (x 289–361, swings into the bathroom), solid new wall x 361–547 |
+| Bathroom (inner) | x 164–463, z 648–778 → **299 × 130** |
+| Shower | x 164–244, **raised 15** (room height 205 inside). Glass at x 243, where the window sashes meet. Mixer 110 above shower floor, 57 from window wall; hand-shower outlet 15 from it |
+| Bathroom window | x 164–322 (158 wide), 59 high, sill 161 |
+| Vanity | 100 × 47, x 263–362, z 731–778, vessel basin |
+| Toilet | wall-hung, centre ≈ (422, 732); concealed-cistern wall x 363–463, z 758–778 (to the ceiling, or 120 with a shelf) |
+| Shelf niche | x 483–547, z 648–720, reached through a **41 cm** opening from the bathroom (z 648–689); shelves face the opening |
+
+## Decisions and state (update this list when things change)
+
+Chosen by Itay:
+- **TV under the AC**, centred on the north wall (x ≈ 250), default 50″ at 110 centre height. The designer's stairs-wall position stays as an option to compare.
+- **Bathroom walls: turquoise / light-blue tiles, 15×15, up to the ceiling** (under the window only up to the sill).
+- **Shower fixtures in bronze** (mixer, hand shower, rain head). The basin faucet is still chrome — not decided.
+
+Still open (options in the panel):
+- Wardrobe, 200 wide, light wood. Candidates (prices from store sites, Sep 2026): IKEA PAX/STORKLINTA 200×60×201 (2,335 ₪, 50 cm hinged doors reach within ~2 cm of the armchair), IKEA PAX/HASVIK 200×66×201 whitened oak sliding (2,400 ₪), Harel "Gil" 200×52.5×213 (~3,750 ₪ + 450 ₪ delivery/install, +100 ₪ in the Jerusalem area), or carpentry to the ceiling. Ceiling is 220, so standard 236–240 cm wardrobes don't fit.
+- Kitchenette 200 or 250.
+- Vitrine frame white (designer's preference, Greek style) or black; clear or fluted ("גלינה") glass.
+- Cistern wall to the ceiling (designer's preference) or 120 with a shelf.
+- Rain head 195 or 200 above the raised shower floor.
+
+Assumptions (not in the plan): bedroom window height, door heights (≈205), floor tiles, furniture finishes and colours.
+
+## The designer's open points → where they live
+
+1. Niche shelves facing the 40 cm opening → `bathroom.js` (niche shelves)
+2. Wardrobe 200 instead of 240 → `furniture.js` `WARDS`, readout in `ui.js` `updateWardKv`
+3. Kitchenette up to 250 → `furniture.js` `buildKitchen`
+4. Cistern wall to the ceiling vs 120 → `bathroom.js` `buildCistern`
+5. Vitrine: white frame, fluted glass → `room.js` vitrine, `M.frame` / `M.glass`
+6. Rain head height (room is 205 inside the shower) → `bathroom.js` `buildRain`, `ui.js` `updateRainNote`
+7. TV position → `tv.js`
+
+## How to add or change something
+
+- New fixed object: add `box(...)` calls in the right file, in plan coordinates. Check the drawing for position.
+- New option in the panel: add the radio/checkbox to `index.html` (give it an `id`), wire it in `ui.js` (`radios(name, fn)`), set its initial state in `main.js`.
+- New camera view: add to `VIEWS` in `ui.js` and a button with `data-view` in `index.html`.
+- Change a finish: edit the material in `materials.js`.
+
+## Checking your work
+
+- Open the page, open the browser console: there must be no errors.
+- Click through every view button and every option; readouts in the panel must update.
+- Check a phone width (≈400px) — the stage sits above the panel and nothing scrolls sideways.
+- Compare positions against the PDF when you move or add anything.
+
+## Publishing
+
+- Repo: https://github.com/itaytoren7/basement (branch `main`)
+- Live site: https://itaytoren7.github.io/basement/
+- Itay commits and pushes with GitHub Desktop. Never upload through the GitHub website: it ignores `.gitignore` and would publish the PDF.
+
+GitHub Pages serves `index.html` from the repo root (Settings → Pages → Deploy from a branch → `main` / root). On a free account the repo must be **public**, so everything committed is visible — that's why `*.pdf` is in `.gitignore`. Commit, push, and the site updates within a minute or two.
