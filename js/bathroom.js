@@ -5,7 +5,7 @@
 (function (B) {
   "use strict";
   if (B.failed) return;
-  const { H, CX, CZ, M, std, root, box, cyl, wall, wallMeshes } = B;
+  const { H, CX, CZ, M, std, root, box, cyl } = B;
 
   /* ---------- shower ---------- */
   box(164, 244, 648, 778, 0, 15, M.shower);                          // whole shower raised 15
@@ -76,24 +76,6 @@
   cladPanel(383, 547, 648.4, 0, H, 0, cladding);                  // north wall beside the door and the solid wall
   cladPanel(164, 302, 648.4, 0, 160, 0, cladding);                // low wall, shower side
 
-  /* ---------- concealed-cistern wall (to the ceiling, or 120 with a shelf) ---------- */
-  const cisternGroup = new THREE.Group(); root.add(cisternGroup);
-  function buildCistern(mode) {
-    const full = mode === true || mode === "full";
-    const partial = mode === "120";
-    for (let i = cisternGroup.children.length - 1; i >= 0; i--) {
-      const c = cisternGroup.children[i];
-      const k = wallMeshes.indexOf(c); if (k >= 0) wallMeshes.splice(k, 1);
-      cisternGroup.remove(c); c.geometry.dispose();
-    }
-    if (!full && !partial) return;
-    const h = full ? H : 120;
-    wall(363, 463, 758, 778, 0, h, true, cisternGroup);
-    cladPanel(363, 463, 757.6, 0, h, Math.PI, cisternGroup);
-    box(414, 430, 757, 758, 118, 128, M.chrome, cisternGroup); // flush plate
-    if (partial) box(363, 463, 754, 758, 120, 122, M.whiteGloss, cisternGroup);
-  }
-
   /* ---------- rain head (height above the raised shower floor) ---------- */
   const rainGroup = new THREE.Group(); root.add(rainGroup);
   function buildRain(h) {
@@ -123,5 +105,5 @@
   /* ---------- niche shelves, facing the 50 cm opening ---------- */
   [30, 70, 110, 150, 190].forEach(y => box(484, 546, 649, 719, y, y + 2, M.white));
 
-  Object.assign(B, { buildCistern, buildRain, buildPerson, cladPanel });
+  Object.assign(B, { buildRain, buildPerson, cladPanel });
 })(window.B);

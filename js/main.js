@@ -7,7 +7,6 @@
   const { renderer, scene, camera, controls, stage } = B;
 
   B.buildKitchen(110); B.updateKitchenNote(110);
-  B.buildCistern("none");
   B.buildRain(200);
   B.buildPerson(165);
   B.updateRainNote();

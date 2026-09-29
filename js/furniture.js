@@ -42,10 +42,11 @@
   box(147, 208, 298, 310, 40, 60, M.armchair);
   box(147, 208, 371, 383, 40, 60, M.armchair);
   box(147, 206, 310, 371, 40, 47, std({ color: "#d3b48f", roughness: 1 }));
-  box(275, 351, 298, 383, 6, 40, M.armchair);
-  box(275, 351, 298, 314, 40, 86, M.armchair);
-  box(275, 351, 368, 383, 40, 60, M.armchair);
-  box(275, 351, 314, 368, 40, 47, std({ color: "#d3b48f", roughness: 1 }));
+  box(366, 442, 298, 383, 6, 40, M.armchair);
+  box(427, 442, 298, 383, 40, 86, M.armchair);
+  box(366, 427, 298, 310, 40, 60, M.armchair);
+  box(366, 427, 371, 383, 40, 60, M.armchair);
+  box(368, 425, 310, 371, 40, 47, std({ color: "#d3b48f", roughness: 1 }));
   box(247, 327, 307, 382, 40, 43, M.oak);
   [[250, 253], [321, 324]].forEach(x => [[310, 313], [376, 379]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 40, M.black)));
   // sofa 150 wide (faces north)

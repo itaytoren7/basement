@@ -164,7 +164,6 @@
     M.glass.opacity = v === "fluted" ? 0.62 : 0.2;
     M.glass.needsUpdate = true;
   });
-  radios("cist", v => B.buildCistern(v));
   radios("rain", v => { B.buildRain(+v); updateRainNote(); });
   $("#personH").addEventListener("input", e => { $("#personHOut").textContent = e.target.value + " ס״מ"; B.buildPerson(+e.target.value); updateRainNote(); });
   $("#optDoors").addEventListener("change", e => { doorsOpen = e.target.checked; });
