@@ -27,12 +27,12 @@
     shade.castShadow = false;
   });
   box(170, 289, 59, 249, 0, 0.8, M.rug);
-  // desk + chair against the stairs wall
-  box(404, 464, 20, 180, 72, 75, M.oak);
-  [[406, 410], [458, 462]].forEach(x => [[22, 26], [174, 178]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 72, M.black)));
-  box(366, 398, 80, 120, 43, 47, M.fabric2);
-  box(364, 368, 80, 120, 47, 86, M.fabric2);
-  [[366, 369], [395, 398]].forEach(x => [[81, 84], [116, 119]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 43, M.black)));
+  // Enlarged desk, centred on the east wall segment between the entry door and north wall
+  box(399, 464, 80, 260, 72, 75, M.oak);
+  [[401, 405], [458, 462]].forEach(x => [[82, 86], [254, 258]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 72, M.black)));
+  box(357, 391, 150, 190, 43, 47, M.fabric2);
+  box(355, 359, 150, 190, 47, 86, M.fabric2);
+  [[357, 360], [388, 391]].forEach(x => [[151, 154], [186, 189]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 43, M.black)));
   // air conditioner on the north wall (x 203–298, 186–214 high)
   box(203, 298, 20, 40, 186, 214, M.ac);
   box(206, 295, 39.6, 40.2, 188, 192, M.groove);
@@ -42,6 +42,10 @@
   box(147, 208, 298, 310, 40, 60, M.armchair);
   box(147, 208, 371, 383, 40, 60, M.armchair);
   box(147, 206, 310, 371, 40, 47, std({ color: "#d3b48f", roughness: 1 }));
+  box(275, 351, 298, 383, 6, 40, M.armchair);
+  box(275, 351, 298, 314, 40, 86, M.armchair);
+  box(275, 351, 368, 383, 40, 60, M.armchair);
+  box(275, 351, 314, 368, 40, 47, std({ color: "#d3b48f", roughness: 1 }));
   box(247, 327, 307, 382, 40, 43, M.oak);
   [[250, 253], [321, 324]].forEach(x => [[310, 313], [376, 379]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 40, M.black)));
   // sofa 150 wide (faces north)
@@ -74,7 +78,18 @@
     box(sinkX - 18, sinkX + 18, 592, 626, 90, 90.4, std({ color: "#8a8e93", roughness: 0.3, metalness: 0.6 }), kitchen);
     cyl(1.4, 28, sinkX, 104, 631, M.chrome, kitchen);
     box(sinkX - 1, sinkX + 1, 612, 631, 116, 118, M.chrome, kitchen);
-    box(x0 + 12, x0 + 38, z0 + 18, z0 + 48, 90, 100, std({ color: "#2c2d2f", roughness: 0.7, metalness: 0.2 }), kitchen); // coffee machine
+    // Compact espresso machine on the counter, facing into the room (north)
+    box(x0 + 12, x0 + 38, z0 + 18, z0 + 48, 90, 114, std({ color: "#292b2e", roughness: 0.55, metalness: 0.18 }), kitchen);
+    box(x0 + 14, x0 + 36, z0 + 18, z0 + 19, 103, 111, M.steel, kitchen); // front control panel
+    box(x0 + 18, x0 + 32, z0 + 17, z0 + 18, 107, 109, M.black, kitchen); // display
+    [x0 + 16, x0 + 34].forEach(x => {
+      const button = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 1, 12), M.chrome);
+      button.rotation.x = Math.PI / 2; button.position.set(x - CX, 105, z0 + 17.3 - CZ); kitchen.add(button);
+    });
+    box(x0 + 17, x0 + 33, z0 + 25, z0 + 28, 114, 115, M.steel, kitchen); // warming tray
+    const espressoCup = new THREE.Mesh(new THREE.CylinderGeometry(4, 3.5, 7, 20), M.whiteGloss);
+    espressoCup.position.set(x0 + 25 - CX, 118.5, z0 + 34 - CZ); kitchen.add(espressoCup);
+    box(x0 + 35, x0 + 37, z0 + 29, z0 + 31, 95, 107, M.steel, kitchen); // steam wand
     box(x0 + 48, x1 - 14, z0 + 18, z1 - 10, 90, 92, M.steel, kitchen); // drying rack
     box(x0 + 10, x1 - 10, z0 + 4, z1 - 4, 120, 122, M.oakLight, kitchen); // upper shelf
     const cupY = 126.5;

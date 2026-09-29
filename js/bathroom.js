@@ -44,10 +44,12 @@
     box(311, 313, 758, 774, 115, 117, M.chrome);
   })();
 
-  /* ---------- wall-hung toilet in front of the concealed-cistern wall ---------- */
+  /* ---------- standard floor-mounted toilet with a visible tank ---------- */
   (function () {
     const t = new THREE.Mesh(new THREE.CylinderGeometry(18, 15, 34, 28), M.porcelain);
     t.scale.z = 1.45; t.position.set(422 - CX, 23 + 17, 732 - CZ); t.castShadow = true; root.add(t);
+    const tank = new THREE.Mesh(new THREE.BoxGeometry(26, 30, 18), M.porcelain);
+    tank.position.set(418 - CX, 36, 748 - CZ); tank.castShadow = true; root.add(tank);
     box(404, 440, 704, 760, 40, 42, M.porcelain);
   })();
 
@@ -76,16 +78,20 @@
 
   /* ---------- concealed-cistern wall (to the ceiling, or 120 with a shelf) ---------- */
   const cisternGroup = new THREE.Group(); root.add(cisternGroup);
-  function buildCistern(full) {
+  function buildCistern(mode) {
+    const full = mode === true || mode === "full";
+    const partial = mode === "120";
     for (let i = cisternGroup.children.length - 1; i >= 0; i--) {
       const c = cisternGroup.children[i];
       const k = wallMeshes.indexOf(c); if (k >= 0) wallMeshes.splice(k, 1);
       cisternGroup.remove(c); c.geometry.dispose();
     }
-    wall(363, 463, 758, 778, 0, full ? H : 120, true, cisternGroup);
-    cladPanel(363, 463, 757.6, 0, full ? H : 120, Math.PI, cisternGroup);
-    if (!full) box(361, 463, 753, 778, 120, 123, M.whiteGloss, cisternGroup);
-    box(414, 430, 757, 758, full ? 118 : 100, full ? 128 : 110, M.chrome, cisternGroup); // flush plate
+    if (!full && !partial) return;
+    const h = full ? H : 120;
+    wall(363, 463, 758, 778, 0, h, true, cisternGroup);
+    cladPanel(363, 463, 757.6, 0, h, Math.PI, cisternGroup);
+    box(414, 430, 757, 758, 118, 128, M.chrome, cisternGroup); // flush plate
+    if (partial) box(363, 463, 754, 758, 120, 122, M.whiteGloss, cisternGroup);
   }
 
   /* ---------- rain head (height above the raised shower floor) ---------- */

@@ -11,7 +11,7 @@
   const AC = { x0: 203, x1: 298, bottom: 186 };                                    // AC unit on the north wall
   const tv = new THREE.Group(); root.add(tv);
   // point = where the TV touches the wall (scene coords, y ignored); normal = direction the screen faces
-  const tvState = { size: 50, y: 110, point: new THREE.Vector3(), normal: new THREE.Vector3(0, 0, 1) };
+  const tvState = { size: 50, y: 110, point: new THREE.Vector3(), normal: new THREE.Vector3(0, 0, 1), turn: 0 };
 
   function buildTvMesh() {
     while (tv.children.length) tv.remove(tv.children[0]);
@@ -19,13 +19,18 @@
     lbox(w, h, 3, 0, 0, 0, M.black, tv);
     const s = new THREE.Mesh(new THREE.PlaneGeometry(w - 1.6, h - 1.6), M.screen);
     s.position.z = 1.55; tv.add(s);
-    lbox(20, 14, 2, 0, 0, -2.4, M.black, tv);   // wall mount
+    lbox(6, 8, 20, 0, 0, -12, M.steel, tv); // articulated arm
+    lbox(20, 20, 2, 0, 0, -22, M.black, tv); // wall plate
   }
 
   function placeTv() {
-    const p = tvState.point.clone().addScaledVector(tvState.normal, 4);
+    const wallNormal = tvState.normal.clone().normalize();
+    const wallTangent = new THREE.Vector3(-wallNormal.z, 0, wallNormal.x).normalize();
+    const turn = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, tvState.turn || 0));
+    const dir = wallNormal.clone().multiplyScalar(Math.cos(turn)).addScaledVector(wallTangent, Math.sin(turn)).normalize();
+    const p = tvState.point.clone().addScaledVector(dir, 20);
     tv.position.set(p.x, tvState.y, p.z);
-    tv.lookAt(p.x + tvState.normal.x, tvState.y, p.z + tvState.normal.z);
+    tv.lookAt(p.x + dir.x, tvState.y, p.z + dir.z);
     updateTvTable();
     // gap between the top of the screen and the AC, when the TV is under it
     const el = document.getElementById("tvAcGap");
@@ -49,6 +54,7 @@
     const p = TV_PRESETS[k];
     tvState.point.set(p.x - CX, 0, p.z - CZ);
     tvState.normal.set(p.n[0], 0, p.n[1]);
+    tvState.turn = 0;
     placeTv();
   }
 
@@ -59,7 +65,10 @@
     { name: "מיטה", p: [60, 150], f: [1, 0], eye: 100 },
   ];
   function updateTvTable() {
-    const tx = tv.position.x + CX, tz = tv.position.z + CZ, n = tvState.normal;
+    const tx = tv.position.x + CX, tz = tv.position.z + CZ;
+    const wallNormal = tvState.normal.clone().normalize();
+    const tangent = new THREE.Vector3(-wallNormal.z, 0, wallNormal.x).normalize();
+    const n = wallNormal.multiplyScalar(Math.cos(tvState.turn || 0)).addScaledVector(tangent, Math.sin(tvState.turn || 0));
     const rows = SEATS.map(s => {
       const dx = tx - s.p[0], dz = tz - s.p[1];
       const dist = Math.hypot(dx, dz);

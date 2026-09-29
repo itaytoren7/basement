@@ -151,6 +151,11 @@
   });
   radios("tvsize", v => { tvState.size = +v; B.buildTvMesh(); B.placeTv(); });
   $("#tvH").addEventListener("input", e => { tvState.y = +e.target.value; $("#tvHOut").textContent = e.target.value + " ס״מ"; B.placeTv(); });
+  $("#tvTurn").addEventListener("input", e => {
+    tvState.turn = +e.target.value * Math.PI / 180;
+    $("#tvTurnOut").textContent = e.target.value + "°";
+    B.placeTv();
+  });
   radios("ward", v => B.buildWardrobe(v));
   radios("kit", v => { B.buildKitchen(+v); updateKitchenNote(+v); });
   radios("frame", v => { M.frame.color.set(v === "black" ? "#232427" : "#f3f3f1"); M.frame.roughness = v === "black" ? 0.4 : 0.5; });
@@ -159,7 +164,7 @@
     M.glass.opacity = v === "fluted" ? 0.62 : 0.2;
     M.glass.needsUpdate = true;
   });
-  radios("cist", v => B.buildCistern(v === "full"));
+  radios("cist", v => B.buildCistern(v));
   radios("rain", v => { B.buildRain(+v); updateRainNote(); });
   $("#personH").addEventListener("input", e => { $("#personHOut").textContent = e.target.value + " ס״מ"; B.buildPerson(+e.target.value); updateRainNote(); });
   $("#optDoors").addEventListener("change", e => { doorsOpen = e.target.checked; });
@@ -170,23 +175,63 @@
     M.newCap.color.set(on ? "#d1382a" : "#8f959e");
   });
 
-  // "click on a wall" TV placement: a click (not a drag) raycasts against the wall meshes
+  // Wall raycasting supports click-to-place and dragging the TV along a wall.
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
   let downAt = null;
-  canvas.addEventListener("pointerdown", e => { downAt = [e.clientX, e.clientY]; });
-  canvas.addEventListener("pointerup", e => {
-    if (!placing || !downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
+  let tvDrag = null;
+  let draggingTv = false;
+  function pointerRay(clientX, clientY) {
     const r = canvas.getBoundingClientRect();
-    ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ptr.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ptr, camera);
+  }
+  function pickWall(clientX, clientY) {
+    pointerRay(clientX, clientY);
     const hit = ray.intersectObjects(wallMeshes, false)[0];
-    if (!hit || !hit.face) return;
+    if (!hit || !hit.face) return null;
     const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-    if (Math.abs(n.y) > 0.3) return;
+    if (Math.abs(n.y) > 0.3) return null;
     n.y = 0; n.normalize();
-    tvState.point.copy(hit.point); tvState.point.y = 0;
-    tvState.normal.copy(n);
+    return { hit, normal: n };
+  }
+  canvas.addEventListener("pointerdown", e => {
+    downAt = [e.clientX, e.clientY];
+    pointerRay(e.clientX, e.clientY);
+    const tvHit = ray.intersectObjects(B.tv.children, true)[0];
+    if (tvHit) {
+      tvDrag = { startX: e.clientX, startY: e.clientY };
+      draggingTv = false;
+      controls.enabled = false;
+      if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
+    }
+  });
+  canvas.addEventListener("pointermove", e => {
+    if (!tvDrag) return;
+    if (Math.hypot(e.clientX - tvDrag.startX, e.clientY - tvDrag.startY) < 5) return;
+    draggingTv = true;
+    const picked = pickWall(e.clientX, e.clientY);
+    if (!picked) return;
+    tvState.point.copy(picked.hit.point); tvState.point.y = 0;
+    tvState.normal.copy(picked.normal);
     B.placeTv();
+  });
+  function finishTvDrag() {
+    controls.enabled = true;
+    if (draggingTv) controls.update();
+    tvDrag = null; draggingTv = false;
+  }
+  canvas.addEventListener("pointercancel", finishTvDrag);
+  canvas.addEventListener("pointerup", e => {
+    if (tvDrag) {
+      finishTvDrag(); downAt = null; return;
+    }
+    if (!placing || !downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) { downAt = null; return; }
+    const picked = pickWall(e.clientX, e.clientY);
+    if (!picked) { downAt = null; return; }
+    tvState.point.copy(picked.hit.point); tvState.point.y = 0;
+    tvState.normal.copy(picked.normal);
+    B.placeTv();
+    downAt = null;
   });
 
   Object.assign(B, { updateWardKv, updateKitchenNote, updateRainNote, setDoorProp, stepDoors, updateLabels, goView, stepCamera });
