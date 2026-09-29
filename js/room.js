@@ -16,7 +16,7 @@
   ];
   const BATH_FLOORS = [
     [164, 463, 648, 778], // bathroom, inner 299 × 130
-    [463, 483, 648, 689], // 41 cm opening to the niche
+    [463, 483, 648, 698], // 50 cm opening to the niche
     [483, 547, 648, 720], // shelf niche
   ];
   MAIN_FLOORS.forEach(r => floorRect(r[0], r[1], r[2], r[3], 0, M.floor, 60));
@@ -60,9 +60,10 @@
     [473, 572, 475, 485, 0, H, 0],     // alcove north wall
     [547, 572, 485, 740, 0, H, 0],     // alcove + niche east wall
     [463, 572, 720, 740, 0, H, 0],     // niche south wall
-    [463, 483, 689, 778, 0, H, 0],     // bathroom east wall (41 cm opening to the niche north of it)
-    [361, 547, 638, 648, 0, H, 1],     // new wall between room and bathroom
-    [164, 282, 638, 648, 0, 160, 1],   // low wall up to 160 behind the kitchenette (vitrine glass above)
+    [463, 483, 698, 778, 0, H, 0],     // bathroom east wall (opening 50 cm to the niche)
+    [383, 547, 638, 648, 0, H, 1],     // solid new wall between room and bathroom
+    [164, 302, 638, 648, 0, 160, 1],   // low wall up to 160 behind the kitchenette (vitrine glass above)
+    [302, 307, 638, 648, 0, H, 1],     // post between the low wall and the bathroom glass door
   ];
   WALLS.forEach(w => wall(w[0], w[1], w[2], w[3], w[4], w[5], !!w[6]));
 
@@ -90,24 +91,24 @@
   /* ---------- bathroom vitrine + glass door (frame colour and glass type are UI options) ---------- */
   (function vitrine() {
     // glass above the 160 low wall
-    box(164, 282, 642, 644, 163, 217, M.glass, root, { noCast: true }).castShadow = false;
-    box(164, 282, 640, 646, 160, 163, M.frame);
-    box(164, 282, 640, 646, 217, H, M.frame);
-    [[164, 167], [221.5, 224.5], [279, 282]].forEach(p => box(p[0], p[1], 640, 646, 163, 217, M.frame));
-    box(282, 289, 639, 647, 0, H, M.frame);           // post
+    box(164, 302, 642, 644, 163, 217, M.glass, root, { noCast: true }).castShadow = false;
+    box(164, 302, 640, 646, 160, 163, M.frame);
+    box(164, 302, 640, 646, 217, H, M.frame);
+    [[164, 167], [221.5, 224.5], [299, 302]].forEach(p => box(p[0], p[1], 640, 646, 163, 217, M.frame));
+    box(302, 307, 639, 647, 0, H, M.frame);           // post
     // transom over the door
-    box(289, 361, 640, 646, 204, 207, M.frame);
-    box(289, 361, 642, 644, 207, 217, M.glass, root, { noCast: true }).castShadow = false;
-    box(289, 361, 640, 646, 217, H, M.frame);
-    box(358, 361, 639, 647, 0, 204, M.frame);
+    box(308, 380, 640, 646, 204, 207, M.frame);
+    box(308, 380, 642, 644, 207, 217, M.glass, root, { noCast: true }).castShadow = false;
+    box(308, 380, 640, 646, 217, H, M.frame);
+    box(377, 380, 639, 647, 0, 204, M.frame);
     // door leaf: 72 cm, hinge on the west side, swings into the bathroom
-    const pivot = new THREE.Group(); pivot.position.set(289 - CX, 0, 643 - CZ); root.add(pivot);
+    const pivot = new THREE.Group(); pivot.position.set(308 - CX, 0, 643 - CZ); root.add(pivot);
     const fw = 4;
     lbox(fw, 204, 3, fw / 2, 102, 0, M.frame, pivot);
-    lbox(fw, 204, 3, 69 - fw / 2, 102, 0, M.frame, pivot);
-    lbox(69, fw, 3, 34.5, 202, 0, M.frame, pivot);
-    lbox(69, fw + 6, 3, 34.5, 5, 0, M.frame, pivot);
-    const g = lbox(69 - 2 * fw, 190, 1.2, 34.5, 104, 0, M.glass, pivot); g.castShadow = false;
+    lbox(fw, 204, 3, 72 - fw / 2, 102, 0, M.frame, pivot);
+    lbox(72, fw, 3, 36, 202, 0, M.frame, pivot);
+    lbox(72, fw + 6, 3, 36, 5, 0, M.frame, pivot);
+    const g = lbox(72 - 2 * fw, 190, 1.2, 36, 104, 0, M.glass, pivot); g.castShadow = false;
     lbox(2, 22, 5, 62, 105, 0, M.chrome, pivot);
     doors.push({ obj: pivot, prop: "ry", closed: 0, open: -Math.PI / 2 * 0.95 });
   })();

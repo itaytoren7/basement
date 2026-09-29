@@ -70,9 +70,9 @@
   cladPanel(648, 778, 164.4, 0, H, Math.PI / 2, cladding);        // west wall (shower wall)
   cladPanel(164, 322, 777.6, 0, 161, Math.PI, cladding);          // south wall under the window
   cladPanel(322, 363, 777.6, 0, H, Math.PI, cladding);            // south wall beside the vanity
-  cladPanel(689, 758, 462.6, 0, H, -Math.PI / 2, cladding);       // east wall
-  cladPanel(361, 463, 648.4, 0, H, 0, cladding);                  // north wall beside the door
-  cladPanel(164, 282, 648.4, 0, 160, 0, cladding);                // low wall, shower side
+  cladPanel(698, 758, 462.6, 0, H, -Math.PI / 2, cladding);       // east wall (opening to niche starts at z 698)
+  cladPanel(383, 547, 648.4, 0, H, 0, cladding);                  // north wall beside the door and the solid wall
+  cladPanel(164, 302, 648.4, 0, 160, 0, cladding);                // low wall, shower side
 
   /* ---------- concealed-cistern wall (to the ceiling, or 120 with a shelf) ---------- */
   const cisternGroup = new THREE.Group(); root.add(cisternGroup);
@@ -114,7 +114,7 @@
     person.position.set(203 - CX, 15, 721 - CZ);
   }
 
-  /* ---------- niche shelves, facing the 41 cm opening (designer's point 1) ---------- */
+  /* ---------- niche shelves, facing the 50 cm opening ---------- */
   [30, 70, 110, 150, 190].forEach(y => box(484, 546, 649, 719, y, y + 2, M.white));
 
   Object.assign(B, { buildCistern, buildRain, buildPerson, cladPanel });

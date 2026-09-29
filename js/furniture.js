@@ -28,11 +28,11 @@
   });
   box(170, 289, 59, 249, 0, 0.8, M.rug);
   // desk + chair against the stairs wall
-  box(404, 464, 20, 146, 72, 75, M.oak);
-  [[406, 410], [458, 462]].forEach(x => [[22, 26], [140, 144]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 72, M.black)));
-  box(366, 398, 66, 100, 43, 47, M.fabric2);
-  box(364, 368, 66, 100, 47, 86, M.fabric2);
-  [[366, 369], [395, 398]].forEach(x => [[67, 70], [96, 99]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 43, M.black)));
+  box(404, 464, 20, 180, 72, 75, M.oak);
+  [[406, 410], [458, 462]].forEach(x => [[22, 26], [174, 178]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 72, M.black)));
+  box(366, 398, 80, 120, 43, 47, M.fabric2);
+  box(364, 368, 80, 120, 47, 86, M.fabric2);
+  [[366, 369], [395, 398]].forEach(x => [[81, 84], [116, 119]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 43, M.black)));
   // air conditioner on the north wall (x 203–298, 186–214 high)
   box(203, 298, 20, 40, 186, 214, M.ac);
   box(206, 295, 39.6, 40.2, 188, 192, M.groove);
@@ -61,35 +61,44 @@
   box(474, 476, 548, 550, 95, 120, M.steel);
   box(474, 476, 573, 575, 95, 120, M.steel);
 
-  /* ---------- kitchenette (length 200 / 250 is a UI option) ---------- */
-  // along the south wall from x = 20, 60 deep (z 578–638); 90 cm clear passage to the wardrobe
+  /* ---------- kitchenette (compact, with coffee machine, sink, drying rack and upper cup storage) ---------- */
   const kitchen = new THREE.Group(); root.add(kitchen);
   function buildKitchen(L) {
     while (kitchen.children.length) { const c = kitchen.children[0]; kitchen.remove(c); c.geometry && c.geometry.dispose(); }
-    const x0 = 20, x1 = 20 + L, z0 = 578, z1 = 638;
+    const width = Math.max(110, Math.min(120, +L || 110));
+    const x0 = 170, x1 = x0 + width, z0 = 578, z1 = 638;
     box(x0, x1, z0 + 6, z1, 0, 10, M.groove, kitchen);
     box(x0, x1, z0 + 2, z1, 10, 86, M.white, kitchen);
     box(x0, x1, z0, z1, 86, 90, M.counter, kitchen);
-    const n = L === 250 ? 5 : 4, w = L / n;
-    for (let i = 1; i < n; i++) box(x0 + i * w - 0.3, x0 + i * w + 0.3, z0 + 1.6, z0 + 2.2, 12, 84, M.groove, kitchen);
-    for (let i = 0; i < n; i++) box(x0 + i * w + 8, x0 + i * w + w - 8, z0 + 1, z0 + 2, 80, 81.5, M.steel, kitchen);
-    box(100, 150, 592, 626, 90, 90.4, std({ color: "#8a8e93", roughness: 0.3, metalness: 0.6 }), kitchen); // sink
-    cyl(1.4, 28, 125, 104, 631, M.chrome, kitchen);
-    box(124, 126, 612, 631, 116, 118, M.chrome, kitchen);
-    box(x1 - 60, x1 - 12, 588, 630, 90, 90.7, M.darkGlass, kitchen);                            // cooktop
-    box(25, 160, 614, 638, 150, 152.5, M.oakLight, kitchen);                                     // open shelf on the solid wall
-    [40, 62, 84].forEach((x, i) => cyl(4 + i, 10 + i * 3, x, 152.5 + (10 + i * 3) / 2, 626, std({ color: ["#e6e1d6", "#c8d3d9", "#d9c6a8"][i], roughness: 0.6 }), kitchen));
+    const sinkX = x0 + width / 2;
+    box(sinkX - 18, sinkX + 18, 592, 626, 90, 90.4, std({ color: "#8a8e93", roughness: 0.3, metalness: 0.6 }), kitchen);
+    cyl(1.4, 28, sinkX, 104, 631, M.chrome, kitchen);
+    box(sinkX - 1, sinkX + 1, 612, 631, 116, 118, M.chrome, kitchen);
+    box(x0 + 12, x0 + 38, z0 + 18, z0 + 48, 90, 100, std({ color: "#2c2d2f", roughness: 0.7, metalness: 0.2 }), kitchen); // coffee machine
+    box(x0 + 48, x1 - 14, z0 + 18, z1 - 10, 90, 92, M.steel, kitchen); // drying rack
+    box(x0 + 10, x1 - 10, z0 + 4, z1 - 4, 120, 122, M.oakLight, kitchen); // upper shelf
+    const cupY = 126.5;
+    const glassCols = ["#dff4ff", "#aee7ff", "#d7f0f5"];
+    for (let i = 0; i < 3; i++) {
+      const cx = x0 + 18 + i * 22;
+      const cup = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 11, 20), std({ color: glassCols[i], transparent: true, opacity: 0.7, roughness: 0.2 }));
+      cup.position.set(cx - CX, cupY, (z0 + 20 + i * 8) - CZ); kitchen.add(cup);
+    }
+    for (let i = 0; i < 3; i++) {
+      const cx = x0 + 54 + i * 18;
+      const cup = new THREE.Mesh(new THREE.CylinderGeometry(4.8, 4.8, 12, 20), std({ color: i % 2 ? "#d3b08c" : "#c3beb5", roughness: 0.6 }));
+      cup.position.set(cx - CX, cupY, (z0 + 30 + i * 9) - CZ); kitchen.add(cup);
+    }
   }
 
-  /* ---------- wardrobe options (west wall, z 288–488, 200 wide) ---------- */
-  // d = total depth incl. doors, h = height. Prices and sizes: store websites, Sep 2026.
+  /* ---------- wardrobe options (west wall, x 20–80, z 398–638, 240 wide) ---------- */
   const WARDS = {
     storklinta: { d: 60, h: 201.2, type: "hinged", sections: [100, 100], doorsPer: [2, 2], body: M.white, front: M.oak, shelves: M.white, name: "IKEA PAX / STORKLINTA" },
     hasvik:     { d: 66, h: 201, type: "sliding", sections: [100, 100], body: M.whiteOak, front: M.whiteOak, shelves: M.white, name: "IKEA PAX / HASVIK" },
     harel:      { d: 52.5, h: 213, type: "hinged", sections: [80, 40, 80], doorsPer: [2, 1, 2], drawers: 1, body: M.harelOak, front: M.harelOak, shelves: M.white, name: "הראל · גיל" },
-    carp:       { d: 60, h: 220, type: "hinged", sections: [100, 100], doorsPer: [2, 2], body: M.oakLight, front: M.oakLight, shelves: M.oakLight, name: "נגרות" },
+    carp:       { d: 60, h: 220, type: "hinged", sections: [120, 120], doorsPer: [2, 2], body: M.oakLight, front: M.oakLight, shelves: M.oakLight, name: "נגרות" },
   };
-  const WZ0 = 288, WZ1 = 488, WX = 20;
+  const WZ0 = 398, WZ1 = 638, WX = 20;
   const wardrobe = new THREE.Group(); root.add(wardrobe);
 
   function buildWardrobe(key) {

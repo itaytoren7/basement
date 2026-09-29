@@ -12,27 +12,19 @@
   function updateWardKv(key) {
     const o = WARDS[key];
     const front = WX + o.d;
-    const passage = B.ARMCHAIR_BACK_X - front;
+    const passage = 170 - front;
     const gap = Math.round((H - o.h) * 10) / 10;
-    let doorRow;
-    if (o.type === "sliding") doorRow = "<span class='pill good'>הזזה, בלי בליטה</span>";
-    else {
-      const maxW = Math.max.apply(null, o.sections.map((s, i) => s / o.doorsPer[i]));
-      const left = B.ARMCHAIR_BACK_X - (front + maxW);
-      doorRow = left < 0 ? "<span class='pill bad'>דלת פתוחה נתקלת בכורסה</span>"
-        : left < 10 ? "<span class='pill warn'>דלת " + Math.round(maxW) + " נפתחת עד " + Math.round(left) + " ס״מ מהכורסה</span>"
-        : "<span class='pill good'>דלת " + Math.round(maxW) + " · נשארים " + Math.round(left) + " ס״מ</span>";
-    }
     $("#wardKv").innerHTML =
-      "<dt>מעבר מול הארון עד הכורסה</dt><dd class='num'>" + Math.round(passage) + " ס״מ</dd>" +
-      "<dt>מרווח לתקרה</dt><dd class='num'>" + (gap <= 0 ? "עד התקרה" : gap + " ס״מ") + "</dd>" +
-      "<dt>פתיחת דלתות</dt><dd>" + doorRow + "</dd>" +
-      "<dt>מעבר עד המטבחון</dt><dd class='num'>90 ס״מ</dd>";
+      "<dt>מיקום</dt><dd>קיר מערבי · x 20–80 · z 398–638</dd>" +
+      "<dt>רוחב × עומק</dt><dd class='num'>240×" + Math.round(o.d) + " ס״מ</dd>" +
+      "<dt>מעבר עד המטבחון</dt><dd class='num'>" + Math.round(passage) + " ס״מ</dd>" +
+      "<dt>מרווח לתקרה</dt><dd class='num'>" + (gap <= 0 ? "עד התקרה" : gap + " ס״מ") + "</dd>";
   }
   function updateKitchenNote(L) {
-    $("#kitNote").textContent = L === 250
-      ? "250 ס״מ נגמר בדיוק בסוף הקיר הנמוך. כיור ליד הקיר המלא, כיריים בקצה."
-      : "200 ס״מ משאיר כ-60 ס״מ פנויים ליד דלת הרחצה, למשל למקרר צר או לפח.";
+    const width = +L;
+    $("#kitNote").textContent = width <= 110
+      ? "המטבחון קטן וצפוף: מכונת קפה, כיור, מתקן ייבוש כלים, ומעליהם מדף עם כוסות זכוכית לקור וקרמיקה לחם."
+      : "המטבחון מרווח מעט יותר, אבל עדיין שומר על תצורה קומפקטית: מכונת קפה, כיור, מדף עליון וכמה כלי שתייה.";
   }
   function updateRainNote() {
     const rain = +document.querySelector("input[name=rain]:checked").value;
@@ -46,7 +38,7 @@
 
   /* ---------- labels (HTML overlay, projected every frame) ---------- */
   const LABELS = [
-    ["מיטה", 120, 70, 150], ["ארון בגדים", 50, 230, 388], ["מטבחון", 140, 108, 608], ["ספה", 276, 92, 468],
+    ["מיטה", 120, 70, 150], ["ארון בגדים", 54, 240, 540], ["מטבחון", 220, 108, 610], ["ספה", 276, 92, 468],
     ["כורסה", 170, 96, 340], ["שולחן כתיבה", 434, 88, 83], ["מקלחון", 204, 212, 700], ["כיור", 312, 118, 752],
     ["אסלה", 422, 64, 725], ["נישת מדפים", 515, 205, 684], ["ארון בגומחה", 511, 228, 560],
     ["כניסה מהמדרגות", 478, 222, 375], ["קיר המדרגות", 464, 236, 150, "stairs"],
@@ -81,8 +73,8 @@
     sofa: { pos: V(276, 108, 474), look: V(300, 100, 100), fp: true },
     bed: { pos: V(62, 102, 150), look: V(464, 105, 225), fp: true },
     arm: { pos: V(158, 106, 340), look: V(464, 108, 270), fp: true },
-    kitchen: { pos: V(395, 158, 525), look: V(40, 100, 545), fp: true },
-    bath: { pos: V(452, 168, 655), look: V(215, 125, 748), fp: true },
+    kitchen: { pos: V(260, 190, 590), look: V(220, 80, 560), fp: true },
+    bath: { pos: V(448, 168, 655), look: V(220, 120, 732), fp: true },
   };
   let isFirstPerson = false;
   let tween = null;

@@ -6,10 +6,10 @@
   if (B.failed) return;
   const { renderer, scene, camera, controls, stage } = B;
 
-  B.buildKitchen(250); B.updateKitchenNote(250);
+  B.buildKitchen(110); B.updateKitchenNote(110);
   B.buildCistern(true);
   B.buildRain(200);
-  B.buildPerson(180);
+  B.buildPerson(165);
   B.updateRainNote();
   B.buildWardrobe("storklinta");
   B.buildTvMesh(); B.setTvPreset("north");
