@@ -74,7 +74,7 @@ All geometry is written in **plan coordinates, centimetres**, read off the drawi
 
 Chosen by Itay:
 - **TV under the AC**, centred on the north wall (x ≈ 250), default 50″ at 110 centre height. The designer's stairs-wall position stays as an option to compare.
-- **TV on a swing arm**, draggable along walls, with rotation from 90° left to 90° right.
+- **TV on an articulated telescoping arm**, draggable along walls, extending 10–45 cm, with 180° total swivel (90° left and right).
 - **Bathroom walls: turquoise / light-blue tiles, 15×15, up to the ceiling** (under the window only up to the sill).
 - **Shower fixtures in bronze** (mixer, hand shower, rain head). The basin faucet is still chrome — not decided.
 - **Wardrobe: carpentry to the ceiling, 240 × 60 × 220**, in the south-west corner, x 20–80, z 398–638.
@@ -85,6 +85,7 @@ Chosen by Itay:
 - **Bathroom wall / vitrine: low wall to 160, glass above x 164–302, post x 302–307, glass door 72 x 308–380, solid wall x 383–547**.
 
 Still open (options in the panel):
+- Bathroom door: regular white interior door (Pandor-style, solid: better privacy, sound and smell) vs the designer's framed glass door. The vitrine glass above the low wall stays either way. Default in the panel: regular white. Code: `room.js` `setBathDoor(type)`. Not yet discussed with the designer.
 - IKEA/Harel wardrobe options were 200 wide and are not yet updated with the new plan; pending a decision from Itay.
 - Vitrine frame white (designer's preference, Greek style) or black; clear or fluted ("גלינה") glass.
 - Rain head 195 or 200 above the raised shower floor.

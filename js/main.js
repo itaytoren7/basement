@@ -8,6 +8,7 @@
 
   B.buildKitchen(110); B.updateKitchenNote(110);
   B.buildRain(200);
+  B.setBathDoor("solid");
   B.buildPerson(165);
   B.updateRainNote();
   B.buildWardrobe("storklinta");

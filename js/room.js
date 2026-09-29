@@ -97,20 +97,50 @@
     [[164, 167], [221.5, 224.5], [299, 302]].forEach(p => box(p[0], p[1], 640, 646, 163, 217, M.frame));
     box(302, 307, 639, 647, 0, H, M.frame);           // post
     // transom over the door
-    box(308, 380, 640, 646, 204, 207, M.frame);
-    box(308, 380, 642, 644, 207, 217, M.glass, root, { noCast: true }).castShadow = false;
-    box(308, 380, 640, 646, 217, H, M.frame);
+    const transom = [
+      box(308, 380, 640, 646, 204, 207, M.frame),
+      box(308, 380, 642, 644, 207, 217, M.glass, root, { noCast: true }),
+      box(308, 380, 640, 646, 217, H, M.frame),
+    ];
+    transom[1].castShadow = false;
     box(377, 380, 639, 647, 0, 204, M.frame);
+    // regular-door version: plain white header above the door + white casing (משקוף) on both faces
+    const header = box(308, 380, 640, 646, 204, H, M.white);
+    const casing = new THREE.Group(); root.add(casing);
+    [[636.5, 638], [648, 649.5]].forEach(z => {
+      box(303, 308, z[0], z[1], 0, 209, M.whiteGloss, casing);
+      box(380, 385, z[0], z[1], 0, 209, M.whiteGloss, casing);
+      box(303, 385, z[0], z[1], 204, 209, M.whiteGloss, casing);
+    });
     // door leaf: 72 cm, hinge on the west side, swings into the bathroom
     const pivot = new THREE.Group(); pivot.position.set(308 - CX, 0, 643 - CZ); root.add(pivot);
     const fw = 4;
-    lbox(fw, 204, 3, fw / 2, 102, 0, M.frame, pivot);
-    lbox(fw, 204, 3, 72 - fw / 2, 102, 0, M.frame, pivot);
-    lbox(72, fw, 3, 36, 202, 0, M.frame, pivot);
-    lbox(72, fw + 6, 3, 36, 5, 0, M.frame, pivot);
-    const g = lbox(72 - 2 * fw, 190, 1.2, 36, 104, 0, M.glass, pivot); g.castShadow = false;
-    lbox(2, 22, 5, 62, 105, 0, M.chrome, pivot);
+    const glassLeaf = new THREE.Group(); pivot.add(glassLeaf);
+    lbox(fw, 204, 3, fw / 2, 102, 0, M.frame, glassLeaf);
+    lbox(fw, 204, 3, 72 - fw / 2, 102, 0, M.frame, glassLeaf);
+    lbox(72, fw, 3, 36, 202, 0, M.frame, glassLeaf);
+    lbox(72, fw + 6, 3, 36, 5, 0, M.frame, glassLeaf);
+    const g = lbox(72 - 2 * fw, 190, 1.2, 36, 104, 0, M.glass, glassLeaf); g.castShadow = false;
+    lbox(2, 22, 5, 62, 105, 0, M.chrome, glassLeaf);
+    // regular white interior door (Pandor-style): flat leaf, three light grooves, lever handle + bathroom lock
+    const solidLeaf = new THREE.Group(); pivot.add(solidLeaf);
+    lbox(71, 202, 4, 36, 102, 0, B.std({ color: "#f6f6f3", roughness: 0.45 }), solidLeaf);
+    [62, 102, 142].forEach(y => [-2.05, 2.05].forEach(z => lbox(61, 0.5, 0.2, 36, y, z, B.std({ color: "#d8d8d4", roughness: 0.8 }), solidLeaf)));
+    [-1, 1].forEach(s => {
+      lbox(5.5, 5.5, 1, 64, 100, s * 2.5, M.chrome, solidLeaf);       // rosette
+      lbox(13, 1.8, 1.8, 58.5, 100, s * 4, M.chrome, solidLeaf);      // lever
+      lbox(4, 4, 1, 64, 86, s * 2.5, M.chrome, solidLeaf);            // lock / thumb-turn
+    });
     doors.push({ obj: pivot, prop: "ry", closed: 0, open: -Math.PI / 2 * 0.95 });
+
+    // UI option: "solid" = regular white door, "glass" = framed glass door as drawn by the designer
+    function setBathDoor(type) {
+      const solid = type === "solid";
+      glassLeaf.visible = !solid;
+      transom.forEach(m => { m.visible = !solid; });
+      solidLeaf.visible = solid; header.visible = solid; casing.visible = solid;
+    }
+    B.setBathDoor = setBathDoor;
   })();
 
   Object.assign(B, { wall, ceiling, doors, WALLS });

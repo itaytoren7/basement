@@ -156,6 +156,12 @@
     $("#tvTurnOut").textContent = e.target.value + "°";
     B.placeTv();
   });
+  $("#tvExtend").addEventListener("input", e => {
+    tvState.extension = +e.target.value;
+    $("#tvExtendOut").textContent = e.target.value + " ס״מ";
+    B.buildTvMesh();
+    B.placeTv();
+  });
   radios("ward", v => B.buildWardrobe(v));
   radios("kit", v => { B.buildKitchen(+v); updateKitchenNote(+v); });
   radios("frame", v => { M.frame.color.set(v === "black" ? "#232427" : "#f3f3f1"); M.frame.roughness = v === "black" ? 0.4 : 0.5; });
@@ -164,6 +170,7 @@
     M.glass.opacity = v === "fluted" ? 0.62 : 0.2;
     M.glass.needsUpdate = true;
   });
+  radios("bdoor", v => B.setBathDoor(v));
   radios("rain", v => { B.buildRain(+v); updateRainNote(); });
   $("#personH").addEventListener("input", e => { $("#personHOut").textContent = e.target.value + " ס״מ"; B.buildPerson(+e.target.value); updateRainNote(); });
   $("#optDoors").addEventListener("change", e => { doorsOpen = e.target.checked; });

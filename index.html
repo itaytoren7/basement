@@ -47,7 +47,12 @@
       <div class="field">
         <label class="lbl" for="tvTurn">סיבוב זרוע (עד 90° לכל צד)</label>
         <div class="rangeRow"><input type="range" id="tvTurn" min="-90" max="90" step="1" value="0"><output for="tvTurn" id="tvTurnOut" class="num">0°</output></div>
-        <p class="note">אפשר לגרור את המסך על הקיר כדי לשנות את מיקומו; הסיבוב נשלט כאן.</p>
+        <p class="note">סיבוב כולל של 180° — 90° לכל צד.</p>
+      </div>
+      <div class="field">
+        <label class="lbl" for="tvExtend">מרחק המסך מהקיר</label>
+        <div class="rangeRow"><input type="range" id="tvExtend" min="10" max="45" step="1" value="20"><output for="tvExtend" id="tvExtendOut" class="num">20 ס״מ</output></div>
+        <p class="note">הזרוע הטלסקופית מתארכת ומתקפלת בטווח 10–45 ס״מ. אפשר גם לגרור את המסך לאורך הקיר.</p>
       </div>
       <div class="field">
         <label class="lbl" for="tvH">גובה מרכז המסך מהרצפה</label>
@@ -99,6 +104,14 @@
           <input type="radio" name="glass" id="g-clear" value="clear"><label for="g-clear">שקופה</label>
           <input type="radio" name="glass" id="g-fluted" value="fluted" checked><label for="g-fluted">גלינה (מחורצת)</label>
         </div>
+      </div>
+      <div class="field">
+        <span class="lbl">דלת חדר הרחצה</span>
+        <div class="seg" role="radiogroup" aria-label="סוג דלת חדר הרחצה">
+          <input type="radio" name="bdoor" id="bd-solid" value="solid" checked><label for="bd-solid">רגילה לבנה</label>
+          <input type="radio" name="bdoor" id="bd-glass" value="glass"><label for="bd-glass">זכוכית במסגרת</label>
+        </div>
+        <p class="note">דלת רגילה סוגרת טוב יותר רעש, ריח ומבטים. הזכוכית מעל הקיר הנמוך נשארת בשתי האפשרויות.</p>
       </div>
       <div class="field">
         <span class="lbl">ראש גשם, מעל רצפת המקלחון המוגבהת</span>
