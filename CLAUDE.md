@@ -1,6 +1,6 @@
 # The BASEment — 3D model of the basement unit
 
-Interactive 3D model of Itay's basement renovation, built from the interior designer's plan so the family can check sizes, layout and finishes before building. It answers the open points in the designer's letter (wardrobe, kitchenette, bathroom vitrine, cistern wall, rain-shower height, TV position).
+Interactive 3D model of Itay's basement renovation, built from the interior designer's plan so the family can check sizes, layout and finishes before building. It answers the open points in the designer's letter (wardrobe, kitchenette, bathroom vitrine, rain-shower height, TV position) and records the family's final furniture choices.
 
 The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes in English.
 
@@ -31,9 +31,9 @@ The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes 
 | `js/materials.js` | Canvas-drawn textures (wood, tiles, turquoise wall tiles, fluted glass, TV screen) and all materials `B.M` |
 | `js/room.js` | Floors, ceiling, the `WALLS` table, windows, entry door, bathroom vitrine + glass door; `B.wall()` |
 | `js/furniture.js` | Bed, nightstands, desk, AC, armchair, coffee table, sofa, alcove closet; `buildKitchen(L)`; wardrobe options `WARDS` + `buildWardrobe(key)` |
-| `js/bathroom.js` | Shower (raised 15), bronze fixtures, vanity, toilet, wall tiles (`cladPanel`), `buildCistern(full)`, `buildRain(h)`, `buildPerson(height)`, niche shelves |
+| `js/bathroom.js` | Shower (raised 15), bronze fixtures, vanity, standard toilet, wall tiles (`cladPanel`), `buildRain(h)`, `buildPerson(height)`, niche shelves |
 | `js/tv.js` | TV sizes, presets (`north` = under the AC, `stairs` = designer's idea), placement, viewing readout, AC gap check |
-| `js/ui.js` | Panel readouts, labels, camera `VIEWS`, door animation, theme sync, all control wiring, click-a-wall TV placement |
+| `js/ui.js` | Panel readouts, labels, camera `VIEWS`, door animation, theme sync, all control wiring, draggable TV and click-a-wall placement |
 | `js/main.js` | Initial state (must match the `checked` inputs in `index.html`), resize, render loop |
 | `תכנית משפחת תורן-יחידת דיור איתי תורן- לעיון בלבד-1.pdf` | The updated designer's plan (sheet TBN01, 24/9/26, scale 1:50). The source for every dimension. Git-ignored — do not publish it. |
 
@@ -58,8 +58,8 @@ All geometry is written in **plan coordinates, centimetres**, read off the drawi
 | Entry door | 90 wide in a new wall at x 473–483, z 330–420, swings into the room; stairs are outside |
 | East alcove | x 473–547, z 485–638, holds a built-in closet (73 × 153) |
 | Bed 140×200 | x 20–220, z 80–220, headboard on the west wall; nightstands z 20–80 and 220–280 |
-| Desk + chair | desk x 404–464, z 20–180 against the stairs wall; chair around z 80–120 |
-| Armchair / coffee table / sofa | armchair x 132–208, z 298–383 (faces east); table x 247–327, z 307–382; sofa 150 wide x 201–351, z 430–506 (faces north) |
+| Desk + chair | desk x 399–464, z 80–260 (65 × 180), centred on the east wall between the entry door and north wall; chair x 357–391, z 150–190 |
+| Lounge seating | armchairs x 132–208 and 366–442, z 298–383, facing each other across the coffee table x 247–327, z 307–382; sofa 150 wide x 201–351, z 430–506 (faces north) |
 | Wardrobe | west wall, **240 wide × 60 deep**, x 20–80, z 398–638; **90** clear to the kitchenette |
 | Kitchenette | fixed **120 wide**, x 170–290, z 578–638; sink centred at x 230 |
 | Room ↔ bathroom wall | z 638–648: low wall to 160 + glass vitrine above (x 164–302), post x 302–307, glass door 72 (x 308–380, swings into the bathroom), solid new wall x 383–547 |
@@ -67,24 +67,26 @@ All geometry is written in **plan coordinates, centimetres**, read off the drawi
 | Shower | x 164–244, **raised 15** (room height 205 inside). Glass at x 243, where the window sashes meet. Mixer 110 above shower floor, 57 from window wall; hand-shower outlet 15 from it |
 | Bathroom window | x 164–322 (158 wide), 59 high, sill 161 |
 | Vanity | 100 × 47, x 263–362, z 731–778, vessel basin |
-| Toilet | wall-hung, centre ≈ (422, 732); concealed-cistern wall x 363–463, z 758–778 (to the ceiling, or 120 with a shelf) |
+| Toilet | standard floor-mounted toilet, bowl centre ≈ (422, 732), visible tank against the south wall; no concealed-cistern bump-out |
 | Shelf niche | x 483–547, z 648–720, reached through a **50 cm** opening from the bathroom (z 648–698); shelves face the opening |
 
 ## Decisions and state (updated)
 
 Chosen by Itay:
 - **TV under the AC**, centred on the north wall (x ≈ 250), default 50″ at 110 centre height. The designer's stairs-wall position stays as an option to compare.
+- **TV on a swing arm**, draggable along walls, with rotation from 90° left to 90° right.
 - **Bathroom walls: turquoise / light-blue tiles, 15×15, up to the ceiling** (under the window only up to the sill).
 - **Shower fixtures in bronze** (mixer, hand shower, rain head). The basin faucet is still chrome — not decided.
 - **Wardrobe: carpentry to the ceiling, 240 × 60 × 220**, in the south-west corner, x 20–80, z 398–638.
-- **Kitchenette: fixed 120 wide**, x 170–290, z 578–638, sink centred at x 230.
+- **Kitchenette: fixed 120 wide**, x 170–290, z 578–638, with a coffee machine, sink centred at x 230, and a small dish-drying rack; no cooktop.
+- **Desk: enlarged to 65 × 180** and centred on the east wall segment between the north TV wall and entry door.
+- **Toilet: standard floor-mounted model**, with visible tank and no concealed-cistern wall.
+- **Upholstery: near-black charcoal** for the sofa and both opposing armchairs.
 - **Bathroom wall / vitrine: low wall to 160, glass above x 164–302, post x 302–307, glass door 72 x 308–380, solid wall x 383–547**.
 
 Still open (options in the panel):
 - IKEA/Harel wardrobe options were 200 wide and are not yet updated with the new plan; pending a decision from Itay.
-- Whether to add a small cooktop to the kitchenette.
 - Vitrine frame white (designer's preference, Greek style) or black; clear or fluted ("גלינה") glass.
-- Cistern wall to the ceiling (designer's preference) or 120 with a shelf.
 - Rain head 195 or 200 above the raised shower floor.
 
 Assumptions (not in the plan): bedroom window height, door heights (≈205), floor tiles, furniture finishes and colours.
@@ -94,7 +96,7 @@ Assumptions (not in the plan): bedroom window height, door heights (≈205), flo
 1. Wardrobe moved to the south-west corner and widened to 240 cm (x 20–80, z 398–638); the 90 cm passage is now between wardrobe front x 80 and kitchenette x 170.
 2. Kitchenette fixed to 120 cm wide, x 170–290, and moved in front of the low wall; the old 200/250 options and open shelf were removed.
 3. Bathroom wall, vitrine, and glass door changed: x 164–302 low wall, post x 302–307, door x 308–380, solid wall x 383–547.
-4. Desk length increased to 160 cm (x 404–464, z 20–180), and chair location moved around z 80–120.
+4. Desk enlarged and moved to the centre of the east wall segment between the entry door and the north TV wall.
 5. Niche opening reduced to 50 cm, so the east bathroom wall starts at z 698.
 
 ## The designer's open points → where they live
@@ -102,10 +104,9 @@ Assumptions (not in the plan): bedroom window height, door heights (≈205), flo
 1. Niche shelves facing the 50 cm opening → `bathroom.js` (niche shelves)
 2. Wardrobe 240 instead of 200 → `furniture.js` `WARDS`, readout in `ui.js` `updateWardKv`
 3. Kitchenette fixed at 120 → `furniture.js` `buildKitchen`, `index.html`, `ui.js`
-4. Cistern wall to the ceiling vs 120 → `bathroom.js` `buildCistern`
-5. Vitrine: white frame, fluted glass → `room.js` vitrine, `M.frame` / `M.glass`
-6. Rain head height (room is 205 inside the shower) → `bathroom.js` `buildRain`, `ui.js` `updateRainNote`
-7. TV position → `tv.js`
+4. Vitrine: white frame, fluted glass → `room.js` vitrine, `M.frame` / `M.glass`
+5. Rain head height (room is 205 inside the shower) → `bathroom.js` `buildRain`, `ui.js` `updateRainNote`
+6. TV position and swing range → `tv.js`, `ui.js`
 
 ## How to add or change something
 

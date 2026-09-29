@@ -1,6 +1,6 @@
-/* bathroom.js — shower, fixtures, vanity, toilet, wall tiles, cistern wall, rain head, person, niche shelves.
+/* bathroom.js — shower, fixtures, vanity, standard toilet, wall tiles, rain head, person, niche shelves.
  * Bathroom interior: x 164–463, z 648–778 (299 × 130). Shower x 164–244, raised 15 cm.
- * Exposes: B.buildCistern(full), B.buildRain(h), B.buildPerson(height), B.cladPanel
+ * Exposes: B.buildRain(h), B.buildPerson(height), B.cladPanel
  */
 (function (B) {
   "use strict";
@@ -72,6 +72,7 @@
   cladPanel(648, 778, 164.4, 0, H, Math.PI / 2, cladding);        // west wall (shower wall)
   cladPanel(164, 322, 777.6, 0, 161, Math.PI, cladding);          // south wall under the window
   cladPanel(322, 363, 777.6, 0, H, Math.PI, cladding);            // south wall beside the vanity
+  cladPanel(363, 463, 777.6, 0, H, Math.PI, cladding);            // south wall behind the toilet
   cladPanel(698, 758, 462.6, 0, H, -Math.PI / 2, cladding);       // east wall (opening to niche starts at z 698)
   cladPanel(383, 547, 648.4, 0, H, 0, cladding);                  // north wall beside the door and the solid wall
   cladPanel(164, 302, 648.4, 0, 160, 0, cladding);                // low wall, shower side

@@ -96,7 +96,7 @@
     harelOak: std({ map: tex.harelOak, roughness: 0.6 }),
     fabric: std({ color: "#473f4d", roughness: 1 }),
     fabric2: std({ color: "#584f61", roughness: 1 }),
-    armchair: std({ color: "#c7a57e", roughness: 1 }),
+    armchair: std({ color: "#473f4d", roughness: 1 }),
     bedBase: std({ color: "#bdb3a5", roughness: 1 }),
     mattress: std({ color: "#f3f1ec", roughness: 1 }),
     duvet: std({ color: "#dfe3e6", roughness: 1 }),
