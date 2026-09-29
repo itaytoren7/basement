@@ -109,10 +109,10 @@
 
   /* ---------- wardrobe options (west wall, x 20–80, z 398–638, 240 wide) ---------- */
   const WARDS = {
-    storklinta: { d: 60, h: 201.2, type: "hinged", sections: [100, 100], doorsPer: [2, 2], body: M.white, front: M.oak, shelves: M.white, name: "IKEA PAX / STORKLINTA" },
-    hasvik:     { d: 66, h: 201, type: "sliding", sections: [100, 100], body: M.whiteOak, front: M.whiteOak, shelves: M.white, name: "IKEA PAX / HASVIK" },
-    harel:      { d: 52.5, h: 213, type: "hinged", sections: [80, 40, 80], doorsPer: [2, 1, 2], drawers: 1, body: M.harelOak, front: M.harelOak, shelves: M.white, name: "הראל · גיל" },
-    carp:       { d: 60, h: 220, type: "hinged", sections: [120, 120], doorsPer: [2, 2], body: M.oakLight, front: M.oakLight, shelves: M.oakLight, name: "נגרות" },
+    storklinta: { w: 249.8, z0: 388.2, d: 37.4, h: 201.2, type: "hinged", layout: "pax", sections: [100, 100, 49.8], doorsPer: [2, 2, 1], body: M.whiteOak, front: M.oakLight, shelves: M.oakLight, name: "IKEA PAX · התכנון של איתי" },
+    hasvik:     { w: 240, d: 66, h: 201, type: "sliding", sections: [100, 100], body: M.whiteOak, front: M.whiteOak, shelves: M.white, name: "IKEA PAX / HASVIK" },
+    harel:      { w: 240, d: 52.5, h: 213, type: "hinged", sections: [80, 40, 80], doorsPer: [2, 1, 2], drawers: 1, body: M.harelOak, front: M.harelOak, shelves: M.white, name: "הראל · גיל" },
+    carp:       { w: 240, d: 60, h: 220, type: "hinged", sections: [120, 120], doorsPer: [2, 2], body: M.oakLight, front: M.oakLight, shelves: M.oakLight, name: "נגרות" },
   };
   const WZ0 = 398, WZ1 = 638, WX = 20;
   const wardrobe = new THREE.Group(); root.add(wardrobe);
@@ -124,46 +124,85 @@
     const dc = o.type === "sliding" ? o.d - 8 : o.d - 2;   // carcass depth
     const xb = WX, xf = WX + dc;
     const h = o.h;
-    box(xb, xb + 1.6, WZ0, WZ1, 0, h, o.body, wardrobe);                // back
-    box(xb, xf, WZ0, WZ0 + 1.8, 0, h, o.body, wardrobe);                // sides
-    box(xb, xf, WZ1 - 1.8, WZ1, 0, h, o.body, wardrobe);
-    box(xb, xf, WZ0, WZ1, h - 1.8, h, o.body, wardrobe);                // top
-    box(xb, xf, WZ0, WZ1, 0, 8, o.body, wardrobe);                      // plinth/bottom
-    let z = WZ0;
-    o.sections.forEach((sw, i) => {
-      const za = z, zb = z + sw;
-      if (i > 0) box(xb, xf, za - 0.9, za + 0.9, 8, h - 1.8, o.body, wardrobe);
-      const hang = sw >= 80 && i !== 1 || (o.sections.length === 2 && i === 0);
-      if (hang) {
-        box(xb + 2, xf - 1, za + 1, zb - 1, h - 26, h - 24.2, o.shelves, wardrobe);
-        const r = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, sw - 4, 12), M.steel);
-        r.rotation.x = Math.PI / 2; r.position.set((xb + xf) / 2 - CX, h - 33, (za + zb) / 2 - CZ); wardrobe.add(r);
-        const cols = ["#8aa0b4", "#d8d2c6", "#5f6b78", "#c9b39a", "#e8e6e1", "#7d8c7a"];
-        for (let k = 0; k < Math.floor((sw - 10) / 9); k++) {
-          const len = 70 + ((k * 37) % 40);
-          box((xb + xf) / 2 - 22, (xb + xf) / 2 + 22, za + 6 + k * 9, za + 8.5 + k * 9, h - 35 - len, h - 35, std({ color: cols[k % cols.length], roughness: 1 }), wardrobe);
+    const wz0 = o.z0 === undefined ? WZ0 : o.z0, wz1 = wz0 + (o.w || WZ1 - WZ0);
+    box(xb, xb + 1.6, wz0, wz1, 0, h, o.body, wardrobe);                // back
+    box(xb, xf, wz0, wz0 + 1.8, 0, h, o.body, wardrobe);                // sides
+    box(xb, xf, wz1 - 1.8, wz1, 0, h, o.body, wardrobe);
+    box(xb, xf, wz0, wz1, h - 1.8, h, o.body, wardrobe);                // top
+    box(xb, xf, wz0, wz1, 0, 8, o.body, wardrobe);                      // plinth/bottom
+
+    if (o.layout === "pax") {
+      const [leftWidth, middleWidth, rightWidth] = o.sections;
+      const div1 = wz0 + leftWidth, div2 = div1 + middleWidth;
+      box(xb, xf, div1 - 1.2, div1 + 1.2, 8, h - 1.8, o.body, wardrobe);
+      box(xb, xf, div2 - 1.2, div2 + 1.2, 8, h - 1.8, o.body, wardrobe);
+      const shelf = (za, zb, y) => box(xb + 3, xf - 2, za + 2, zb - 2, y, y + 2, o.shelves, wardrobe);
+      const rail = (za, zb, y) => {
+        const r = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, zb - za - 8, 12), M.steel);
+        r.rotation.x = Math.PI / 2; r.position.set((xb + xf) / 2 - CX, y, (za + zb) / 2 - CZ); wardrobe.add(r);
+      };
+
+      // Left bay: upper hanging space, four drawers below.
+      shelf(wz0, div1, 176); rail(wz0, div1, 163);
+      [14, 38, 62, 86].forEach((y, i) => {
+        box(xf - 3.5, xf - 2, wz0 + 5, div1 - 5, y, y + 21, o.front, wardrobe);
+        box(xf - 4, xf - 2.8, wz0 + 42, wz0 + 58, y + 9, y + 10.5, M.steel, wardrobe);
+      });
+      [0, 1, 2].forEach(i => {
+        const color = ["#dce1e3", "#333b43", "#7890a2"][i];
+        box(xf - 15, xf - 5, wz0 + 15 + i * 23, wz0 + 30 + i * 23, 112, 155 - i * 6, std({ color, roughness: 1 }), wardrobe);
+      });
+
+      // Middle bay: full-height hanging space and a low storage shelf.
+      shelf(div1, div2, 176); shelf(div1, div2, 48); rail(div1, div2, 163);
+      [0, 1, 2, 3].forEach(i => {
+        const color = ["#333a40", "#7d91a2", "#e8e7e2", "#b8c5ce"][i];
+        const za = div1 + 12 + i * 20;
+        box(xf - 17, xf - 4, za, za + 14, 66 + (i % 2) * 9, 151 - (i % 2) * 4, std({ color, roughness: 1 }), wardrobe);
+      });
+
+      // Narrow right bay: adjustable-looking shelves with folded linen and bags.
+      [48, 96, 144].forEach(y => shelf(div2, wz1, y));
+      [[div2 + 9, 64, 4], [div2 + 22, 67, 5], [div2 + 8, 112, 5], [div2 + 25, 159, 4]].forEach(([z, y, d]) => {
+        box(xf - 18, xf - 5, z, Math.min(z + d * 3, wz1 - 6), y, y + 8, std({ color: "#c9bda9", roughness: 1 }), wardrobe);
+      });
+    } else {
+      let z = wz0;
+      o.sections.forEach((sw, i) => {
+        const za = z, zb = z + sw;
+        if (i > 0) box(xb, xf, za - 0.9, za + 0.9, 8, h - 1.8, o.body, wardrobe);
+        const hang = sw >= 80 && i !== 1 || (o.sections.length === 2 && i === 0);
+        if (hang) {
+          box(xb + 2, xf - 1, za + 1, zb - 1, h - 26, h - 24.2, o.shelves, wardrobe);
+          const r = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, sw - 4, 12), M.steel);
+          r.rotation.x = Math.PI / 2; r.position.set((xb + xf) / 2 - CX, h - 33, (za + zb) / 2 - CZ); wardrobe.add(r);
+          const cols = ["#8aa0b4", "#d8d2c6", "#5f6b78", "#c9b39a", "#e8e6e1", "#7d8c7a"];
+          for (let k = 0; k < Math.floor((sw - 10) / 9); k++) {
+            const len = 70 + ((k * 37) % 40);
+            box((xb + xf) / 2 - 22, (xb + xf) / 2 + 22, za + 6 + k * 9, za + 8.5 + k * 9, h - 35 - len, h - 35, std({ color: cols[k % cols.length], roughness: 1 }), wardrobe);
+          }
+        } else {
+          const step = sw < 60 ? 32 : 38;
+          for (let y = 8 + step; y < h - 20; y += step) box(xb + 2, xf - 1, za + 1, zb - 1, y, y + 1.8, o.shelves, wardrobe);
+          for (let y = 8 + step; y < h - 20; y += step) box(xb + 6, xf - 12, za + 6, zb - 6, y + 1.8, y + 12, std({ color: "#dcd7ce", roughness: 1 }), wardrobe);
         }
-      } else {
-        const step = sw < 60 ? 32 : 38;
-        for (let y = 8 + step; y < h - 20; y += step) box(xb + 2, xf - 1, za + 1, zb - 1, y, y + 1.8, o.shelves, wardrobe);
-        for (let y = 8 + step; y < h - 20; y += step) box(xb + 6, xf - 12, za + 6, zb - 6, y + 1.8, y + 12, std({ color: "#dcd7ce", roughness: 1 }), wardrobe);
-      }
-      z = zb;
-    });
+        z = zb;
+      });
+    }
     // doors
     if (o.type === "sliding") {
-      const half = (WZ1 - WZ0) / 2;
+      const half = (wz1 - wz0) / 2;
       [0, 1].forEach(i => {
         const g = new THREE.Group(); g.position.set((xf + (i ? 5.5 : 2)) - CX, 0, 0); wardrobe.add(g);
-        const za = WZ0 + i * half;
+        const za = wz0 + i * half;
         lbox(1.8, h - 8, half, 0, (h - 8) / 2 + 4, za + half / 2 - CZ, o.front, g);
         lbox(0.6, h - 8, 1.2, 0.8, (h - 8) / 2 + 4, za + (i ? 2 : half - 2) - CZ, M.steel, g);
         doors.push({ obj: g, prop: "pz", closed: 0, open: i ? -(half - 6) : 0, ward: true });
       });
-      box(xf, xf + 8, WZ0, WZ1, h - 4, h, o.body, wardrobe);
-      box(xf, xf + 8, WZ0, WZ1, 0, 4, o.body, wardrobe);
+      box(xf, xf + 8, wz0, wz1, h - 4, h, o.body, wardrobe);
+      box(xf, xf + 8, wz0, wz1, 0, 4, o.body, wardrobe);
     } else {
-      let z2 = WZ0;
+      let z2 = wz0;
       o.sections.forEach((sw, si) => {
         const n = o.doorsPer[si], w = sw / n;
         for (let k = 0; k < n; k++) {
@@ -176,7 +215,7 @@
           const y0 = short ? 64 : 3, y1 = h - 3;
           const s = hingeLow ? 1 : -1;
           lbox(1.8, y1 - y0, w - 0.4, 0, (y0 + y1) / 2, s * (w / 2), o.front, pivot);
-          lbox(1.2, key === "harel" ? 30 : 22, 1.4, 1.6, 100, s * (w - 4), M.black, pivot);
+          if (key !== "storklinta") lbox(1.2, key === "harel" ? 30 : 22, 1.4, 1.6, 100, s * (w - 4), M.black, pivot);
           doors.push({ obj: pivot, prop: "ry", closed: 0, open: s * Math.PI / 2 * 0.98, ward: true });
         }
         if (o.drawers && si === 1) {

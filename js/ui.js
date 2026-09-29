@@ -15,8 +15,8 @@
     const passage = 170 - front;
     const gap = Math.round((H - o.h) * 10) / 10;
     $("#wardKv").innerHTML =
-      "<dt>מיקום</dt><dd>קיר מערבי · x 20–80 · z 398–638</dd>" +
-      "<dt>רוחב × עומק</dt><dd class='num'>240×" + Math.round(o.d) + " ס״מ</dd>" +
+      "<dt>מיקום</dt><dd>קיר מערבי · x 20–" + (20 + Math.round(o.d * 10) / 10) + " · z " + (o.z0 === undefined ? 398 : o.z0) + "–" + ((o.z0 === undefined ? 398 : o.z0) + (o.w || 240)) + "</dd>" +
+      "<dt>רוחב × עומק</dt><dd class='num'>" + (o.w || 240) + "×" + Math.round(o.d * 10) / 10 + " ס״מ</dd>" +
       "<dt>מעבר עד המטבחון</dt><dd class='num'>" + Math.round(passage) + " ס״מ</dd>" +
       "<dt>מרווח לתקרה</dt><dd class='num'>" + (gap <= 0 ? "עד התקרה" : gap + " ס״מ") + "</dd>";
   }

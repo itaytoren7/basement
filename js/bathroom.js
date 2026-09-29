@@ -5,7 +5,7 @@
 (function (B) {
   "use strict";
   if (B.failed) return;
-  const { H, CX, CZ, M, std, root, box, cyl } = B;
+  const { H, CX, CZ, M, std, root, box, lbox, cyl, doors } = B;
 
   /* ---------- shower ---------- */
   box(164, 244, 648, 778, 0, 15, M.shower);                          // whole shower raised 15
@@ -42,6 +42,34 @@
     inner.scale.z = 0.72; inner.position.set(312 - CX, 95.6, 753 - CZ); root.add(inner);
     cyl(1.3, 34, 312, 100, 773, M.chrome);             // basin faucet (chrome — not decided yet)
     box(311, 313, 758, 774, 115, 117, M.chrome);
+  })();
+
+  /* ---------- shallow mirrored medicine cabinet above the basin ---------- */
+  (function () {
+    const x0 = 282, x1 = 342, z0 = 758, z1 = 778, y0 = 120, y1 = 160;
+    const mirror = new THREE.MeshStandardMaterial({ color: "#cbd6db", metalness: 0.35, roughness: 0.12, side: THREE.DoubleSide });
+    // Carcass is tucked below the window sill; 60 × 40 × 20 cm, centered on the basin.
+    box(x0, x1, z0, z1, y0, y1, M.whiteGloss);
+    box(x0 + 2, x1 - 2, z1 - 2, z1 - 1, y0 + 2, y1 - 2, M.white);
+    box(x0 + 2, x1 - 2, z0 + 4, z1 - 2, 139, 141, M.whiteGloss); // internal shelf
+
+    // A few small bottles and cream jars make the closed-storage purpose apparent when open.
+    [
+      [290, 127, 4, 10], [302, 128, 5, 12], [317, 127, 4, 9],
+      [328, 146, 5, 11], [296, 146, 4, 8], [312, 146, 4, 10],
+    ].forEach(([x, y, r, h]) => {
+      const bottle = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.9, h, 16), M.whiteGloss);
+      bottle.position.set(x - CX, y + h / 2, 767 - CZ); root.add(bottle);
+      box(x - 1.5, x + 1.5, 765.5, 768.5, y + h, y + h + 2, M.chrome);
+    });
+
+    // Mirrored leaf, hinged at the right edge and opening into the bathroom with the door toggle.
+    const pivot = new THREE.Group(); pivot.position.set(x1 - CX, y0 - 1, z0 - CZ); root.add(pivot);
+    lbox(1.4, y1 - y0, x1 - x0, -((x1 - x0) / 2), (y1 - y0) / 2, 0, M.frame, pivot);
+    const glass = lbox(0.5, y1 - y0 - 3, x1 - x0 - 3, -((x1 - x0) / 2), (y1 - y0) / 2, -1, mirror, pivot);
+    glass.castShadow = false;
+    lbox(1.5, 8, 1.5, -5, (y1 - y0) / 2, -2, M.chrome, pivot); // discreet edge pull
+    doors.push({ obj: pivot, prop: "ry", closed: 0, open: -Math.PI / 2 * 0.95 });
   })();
 
   /* ---------- standard floor-mounted toilet with a visible tank ---------- */

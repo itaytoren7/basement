@@ -11,7 +11,7 @@
   const AC = { x0: 203, x1: 298, bottom: 186 };                                    // AC unit on the north wall
   const tv = new THREE.Group(); root.add(tv);
   // point = wall anchor (scene coords, y ignored); normal = wall direction; turn pivots ±90°.
-  const tvState = { size: 50, y: 110, point: new THREE.Vector3(), normal: new THREE.Vector3(0, 0, 1), turn: 0, extension: 20 };
+  const tvState = { size: 55, y: 110, point: new THREE.Vector3(), normal: new THREE.Vector3(0, 0, 1), turn: 0, extension: 20 };
   const swing = new THREE.Group(); tv.add(swing);
   const screen = new THREE.Group();
   const wallPlate = new THREE.Group(); tv.add(wallPlate);

@@ -31,7 +31,7 @@ The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes 
 | `js/materials.js` | Canvas-drawn textures (wood, tiles, turquoise wall tiles, fluted glass, TV screen) and all materials `B.M` |
 | `js/room.js` | Floors, ceiling, the `WALLS` table, windows, entry door, bathroom vitrine + glass door; `B.wall()` |
 | `js/furniture.js` | Bed, nightstands, desk, AC, armchair, coffee table, sofa, alcove closet; `buildKitchen(L)`; wardrobe options `WARDS` + `buildWardrobe(key)` |
-| `js/bathroom.js` | Shower (raised 15), bronze fixtures, vanity, standard toilet, wall tiles (`cladPanel`), `buildRain(h)`, `buildPerson(height)`, niche shelves |
+| `js/bathroom.js` | Shower (raised 15), bronze fixtures, vanity, mirrored medicine cabinet, standard toilet, wall tiles (`cladPanel`), `buildRain(h)`, `buildPerson(height)`, niche shelves |
 | `js/tv.js` | TV sizes, presets (`north` = under the AC, `stairs` = designer's idea), placement, viewing readout, AC gap check |
 | `js/ui.js` | Panel readouts, labels, camera `VIEWS`, door animation, theme sync, all control wiring, draggable TV and click-a-wall placement |
 | `js/main.js` | Initial state (must match the `checked` inputs in `index.html`), resize, render loop |
@@ -60,7 +60,8 @@ All geometry is written in **plan coordinates, centimetres**, read off the drawi
 | Bed 140×200 | x 20–220, z 80–220, headboard on the west wall; nightstands z 20–80 and 220–280 |
 | Desk + chair | desk x 399–464, z 80–260 (65 × 180), centred on the east wall between the entry door and north wall; chair x 357–391, z 150–190 |
 | Lounge seating | armchairs x 132–208 and 366–442, z 298–383, facing each other across the coffee table x 247–327, z 307–382; sofa 150 wide x 201–351, z 430–506 (faces north) |
-| Wardrobe | west wall, **240 wide × 60 deep**, x 20–80, z 398–638; **90** clear to the kitchenette |
+| Wardrobe carpentry option | west wall, **240 wide × 60 deep**, x 20–80, z 398–638 |
+| Custom IKEA PAX | **249.8 wide × 37.4 deep × 201.2 high**; aligned to z 388.2–638; five hinged oak-look doors; interior: drawers, hanging rails, and shelves |
 | Kitchenette | fixed **120 wide**, x 170–290, z 578–638; sink centred at x 230 |
 | Room ↔ bathroom wall | z 638–648: low wall to 160 + glass vitrine above (x 164–302), post x 302–307, glass door 72 (x 308–380, swings into the bathroom), solid new wall x 383–547 |
 | Bathroom (inner) | x 164–463, z 648–778 → **299 × 130** |
@@ -73,14 +74,15 @@ All geometry is written in **plan coordinates, centimetres**, read off the drawi
 ## Decisions and state (updated)
 
 Chosen by Itay:
-- **TV under the AC**, centred on the north wall (x ≈ 250), default 50″ at 110 centre height. The designer's stairs-wall position stays as an option to compare.
+- **TV under the AC**, centred on the north wall (x ≈ 250), default 55″ at 110 centre height. The designer's stairs-wall position stays as an option to compare.
 - **TV on an articulated telescoping arm**, draggable along walls, extending 10–45 cm, with 180° total swivel (90° left and right).
 - **Bathroom walls: turquoise / light-blue tiles, 15×15, up to the ceiling** (under the window only up to the sill).
 - **Shower fixtures in bronze** (mixer, hand shower, rain head). The basin faucet is still chrome — not decided.
-- **Wardrobe: carpentry to the ceiling, 240 × 60 × 220**, in the south-west corner, x 20–80, z 398–638.
+- **Selected wardrobe option: custom IKEA PAX / STORKLINTA**, 249.8 × 37.4 × 201.2 cm, with five hinged oak-look doors and the submitted internal layout. Other wardrobe options remain available.
 - **Kitchenette: fixed 120 wide**, x 170–290, z 578–638, with a coffee machine, sink centred at x 230, and a small dish-drying rack; no cooktop.
 - **Desk: enlarged to 65 × 180** and centred on the east wall segment between the north TV wall and entry door.
 - **Toilet: standard floor-mounted model**, with visible tank and no concealed-cistern wall.
+- **Vanity storage: 60 × 40 × 20 cm mirrored cabinet**, centered above the basin and below the bathroom window sill; the mirror door opens with the door toggle.
 - **Upholstery: near-black charcoal** for the sofa and both opposing armchairs.
 - **Bathroom wall / vitrine: low wall to 160, glass above x 164–302, post x 302–307, glass door 72 x 308–380, solid wall x 383–547**.
 
