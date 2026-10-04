@@ -17,7 +17,7 @@ The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes 
 - three.js **r147**, classic builds (`build/three.min.js` + `examples/js/controls/OrbitControls.js`), pinned on jsDelivr. r148+ dropped `examples/js`; upgrading means switching to ES modules and then the page no longer works from `file://` — only do that together with serving over http.
 - Keep it working from `file://`: no `type="module"`, no `fetch`, no imports.
 - All scripts share one global object, `window.B`. Each file is an IIFE that reads what earlier files put on `B` and adds its own exports at the bottom. **Load order matters** (see `index.html`).
-- Every colour in the page UI is a CSS token in `:root` with dark-mode overrides. Don't hardcode colours in components.
+- Every colour in the page UI is a CSS token in `:root` with dark-mode overrides. Don't hardcode colours in components. Exception: colour-picker swatches show a data colour (fabric or light) through the `--sw` custom property, set by `ui.js` from the data lists.
 - No environment map in the scene, so keep material `metalness` ≤ ~0.45 or metals render black.
 - UI strings are Hebrew. Numbers use the `num` class (tabular digits).
 
@@ -28,13 +28,13 @@ The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes 
 | `index.html` | Page markup: the options panel (right) and the 3D stage; script tags in load order |
 | `css/styles.css` | All styles, colour tokens, light/dark, phone layout (≤820px) |
 | `js/core.js` | `window.B`, constants (`H`, `CX`, `CZ`), renderer, scene, camera, OrbitControls, daylight (`B.daylight`: sky, ambient, sun, fill), geometry helpers (`box`, `lbox`, `cyl`, `floorRect`, `V`) |
-| `js/materials.js` | Canvas-drawn textures (wood, light-oak parquet, LOKALTÅG rug, Tibbleby fabric, tiles, turquoise wall tiles, fluted glass, TV screen) and all materials `B.M` |
+| `js/materials.js` | Canvas-drawn textures (wood, light-oak parquet, LOKALTÅG rug, Tibbleby fabric, neutral weave, tiles, turquoise wall tiles, fluted glass, TV screen), all materials `B.M`, upholstery colour options `FABRICS` + `setFabric(mats, key)` |
 | `js/room.js` | Floors, ceiling, the `WALLS` table, windows, entry door, bathroom vitrine + glass door; `B.wall()` |
 | `js/furniture.js` | Bed, STORKLINTA nightstands, LOKALTÅG rug, furnished desk setup, AC, armchairs, dark-oak coffee table, KIVIK sofa + throw pillows (`B.SOFA`), alcove closet; `buildKitchen(L)`; wardrobe options `WARDS` + `buildWardrobe(key)`; `softMesh`/`soft` for upholstered shapes |
 | `js/bathroom.js` | Shower (raised 15), bronze fixtures, vanity, mirrored medicine cabinet, standard toilet, wall tiles (`cladPanel`), `buildRain(h)`, `buildPerson(height)`, niche shelves |
-| `js/lights.js` | Lamps and ceiling lights from the `LAMPS` / `CEILING_LIGHTS` lists, `setWarmLights`, `setCeilingLights`, `setEvening` |
+| `js/lights.js` | Lamps and ceiling lights from the `LAMPS` / `CEILING_LIGHTS` lists, colour options `WARM_PRESETS` / `CEILING_PRESETS`, `setWarmLights`, `setCeilingLights`, `setEvening` |
 | `js/tv.js` | TV sizes, presets (`north` = under the AC, `stairs` = designer's idea), placement, viewing readout, AC gap check |
-| `js/ui.js` | Panel readouts (wardrobe, sofa gaps, `SHOPPING` list, rain note), labels, camera `VIEWS`, door animation, theme sync, all control wiring incl. `syncLighting`, draggable TV and click-a-wall placement |
+| `js/ui.js` | Panel readouts (wardrobe, sofa gaps, `SHOPPING` list, rain note), colour pickers built from data (`UPHOLSTERY` + `syncFabrics`, light presets), labels, camera `VIEWS`, door animation, theme sync, all control wiring incl. `syncLighting`, draggable TV and click-a-wall placement |
 | `js/main.js` | Initial state (must match the `checked` inputs in `index.html`; lighting is read from the inputs by `syncLighting`), resize, render loop |
 | `תכנית משפחת תורן-יחידת דיור איתי תורן- לעיון בלבד-1.pdf` | The updated designer's plan (sheet TBN01, 24/9/26, scale 1:50). The source for every dimension. Git-ignored — do not publish it. |
 
@@ -91,7 +91,8 @@ Chosen by Itay:
 - **Desk setup:** monitor, raised laptop, tablet stand, open notebook, phone stand, pen cup, candle, reed diffuser, stereo speakers and floor subwoofer under the desk.
 - **Toilet: standard floor-mounted model**, with visible tank and no concealed-cistern wall.
 - **Vanity storage: 60 × 40 × 20 cm mirrored cabinet**, centered above the basin and below the bathroom window sill; the mirror door opens with the door toggle.
-- **Sofa: IKEA KIVIK 3-seat** in **Tibbleby beige/grey** (light warm grey woven fabric, `M.kivik`), 228 × 95 × 83, wide low boxy arms, 2 seat + 2 back cushions, with 4 throw pillows: mustard (`M.mustard`) and dark navy (`M.navy`), one of each at each end. The **armchairs stay near-black charcoal** (`M.armchair`).
+- **Sofa: IKEA KIVIK 3-seat** in **Tibbleby beige/grey** (light warm grey woven fabric, `M.kivik`), 228 × 95 × 83, wide low boxy arms, 2 seat + 2 back cushions, with 4 throw pillows: mustard (`M.mustard`) and dark navy (`M.navy`), one of each at each end. The **armchairs stay near-black charcoal** (`M.armchair` body + `M.armchairSeat` cushions; the desk chair has its own `M.fabric2`).
+- **Upholstery colour pickers** (panel, "ספה וכורסאות"): the sofa and the armchairs are chosen **separately**, from the same `FABRICS` palette: whites/beiges (incl. Tibbleby), blues/light blues, browns, and dark charcoal. They are for comparing only; the decision and the shopping list stay Tibbleby for the sofa and charcoal for the armchairs (`def` in `UPHOLSTERY`, `ui.js`).
 - **Nightstands: IKEA STORKLINTA chest of 2 drawers**, oak effect, one on each side of the bed; flat drawers with finger-grip gaps, overhanging top, low plinth. The old nightstand lamps were removed.
 - **Lamp: IKEA BLÅSVERK, yellow**, only on the **south** nightstand (toward the armchairs and the wardrobe). Price 95 ₪ read from a blurry tag, **not confirmed**.
 - **Rug: IKEA LOKALTÅG**, short pile, beige/grey, 133 × 195: off-white field with a faded grey vintage oriental pattern and a 13 cm border (`tex.rug`).
@@ -125,9 +126,11 @@ Shown in the panel ("רשימת קניות"); the data is `SHOPPING` in `ui.js`,
 - **Daylight** (`core.js`): hemisphere + ambient + sun (casts the only shadows) + a fill light, listed in `B.daylight`.
 - **Lamps and ceiling lights** (`js/lights.js`): every lamp is one line in **`LAMPS`**: `kind` (`blasverk`, `floor`, `desk`, `strip`), position in plan cm, `power` (intensity at 100%) and `reach` (fade-out distance in cm). Move a lamp by editing its `x`/`z`, add one by adding a line. The ceiling fixtures are in **`CEILING_LIGHTS`**.
   - BLÅSVERK on the south nightstand (45, 244); floor lamp with a fabric shade (425, 470); warm LED strip under the kitchenette's upper shelf (x 184–266, z 586, two downward spotlights); small table lamp at the north end of the desk (454, 90).
-  - Two flat round ceiling fixtures (40 Ø) at x 242, z 175 / 485, neutral-to-cool white (`CEILING_COLOR`, ~4500K). Their meshes are in the ceiling group, so they show only in first-person views; their light works in every view.
-- **Colours:** the warm lamps share one colour, from `WARM_RANGE.from` (#ffe2a6, ~3000K) to `WARM_RANGE.to` (#ff9440, ~2000K). The glowing shades and strip take the same colour (times a tint, e.g. yellow for the BLÅSVERK glass), so light and glow change together. The slider's colour bar uses the CSS tokens `--lamp-3000` / `--lamp-2000`.
-- **Panel ("תאורה"):** "ערב" (evening) dims the daylight and the window glow to 15%; warm lamps: on/off, colour, brightness; ceiling lights: on/off, brightness. Defaults: evening off, all lamps on, colour ≈2700K, warm 70%, ceiling 60%. `syncLighting()` in `ui.js` reads the inputs and applies them.
+  - Two flat round ceiling fixtures (40 Ø) at x 242, z 175 / 485. Their meshes are in the ceiling group, so they show only in first-person views; their light works in every view.
+- **Colours — lamps and ceiling are separate:**
+  - Warm lamps share one colour, from `WARM_RANGE.from` (#ffe2a6, ~3000K) to `WARM_RANGE.to` (#ff9440, ~2000K). Options `WARM_PRESETS`: 3000K לבן חם, 2700K חם (default), 2200K ענבר, 2000K כתום. They are points on the fine-tuning slider; a preset stays marked while the slider sits on it. The glowing shades and strip take the same colour (times a tint, e.g. yellow for the BLÅSVERK glass), so light and glow change together. The slider's colour bar uses the CSS tokens `--lamp-3000` / `--lamp-2000`.
+  - Ceiling lights: options `CEILING_PRESETS`: 3000K לבן חם, 4000K ניטרלי (default, #fff3e6), 5000K לבן קר, 6500K אור יום. The diffuser glow follows the chosen colour.
+- **Panel ("תאורה"):** "ערב" (evening) dims the daylight and the window glow to 15%; warm lamps: on/off, colour presets + fine slider, brightness; ceiling lights: on/off, colour presets, brightness. Defaults: evening off, all lamps on, lamps 2700K at 70%, ceiling 4000K at 60%. `syncLighting()` in `ui.js` reads the inputs and applies them.
 - No lamp casts shadows (keeps it fast). Intensities are three.js legacy units (`physicallyCorrectLights` off), like the daylight.
 
 ## What changed vs. the previous plan
@@ -151,7 +154,7 @@ Shown in the panel ("רשימת קניות"); the data is `SHOPPING` in `ui.js`,
 
 - New fixed object: add `box(...)` calls in the right file, in plan coordinates. Check the drawing for position.
 - New option in the panel: add the radio/checkbox to `index.html` (give it an `id`), wire it in `ui.js` (`radios(name, fn)`), set its initial state in `main.js`.
-- New or moved lamp: edit `LAMPS` in `lights.js`. New shopping item: add to `SHOPPING` in `ui.js`.
+- New or moved lamp: edit `LAMPS` in `lights.js`; new light colour option: `WARM_PRESETS` / `CEILING_PRESETS`. New upholstery colour: add to `FABRICS` in `materials.js` (both pickers update). New shopping item: add to `SHOPPING` in `ui.js`.
 - New camera view: add to `VIEWS` in `ui.js` and a button with `data-view` in `index.html`.
 - Change a finish: edit the material in `materials.js`.
 

@@ -14,6 +14,7 @@
   B.buildWardrobe("paxglass");
   B.updateSofaKv();
   B.renderShopping();
+  B.syncFabrics();
   B.syncLighting();
   B.buildTvMesh(); B.setTvPreset("north");
 

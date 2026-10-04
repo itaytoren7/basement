@@ -1,5 +1,5 @@
 /* ui.js — panel readouts, labels, camera views, door animation, theme sync and control wiring.
- * Exposes: B.updateWardKv, B.updateKitchenNote, B.updateRainNote, B.updateSofaKv, B.renderShopping, B.syncLighting,
+ * Exposes: B.updateWardKv, B.updateKitchenNote, B.updateRainNote, B.updateSofaKv, B.renderShopping, B.syncLighting, B.syncFabrics,
  *          B.setDoorProp, B.stepDoors, B.updateLabels, B.goView, B.stepCamera
  */
 (function (B) {
@@ -207,14 +207,52 @@
   $("#personH").addEventListener("input", e => { $("#personHOut").textContent = e.target.value + " ס״מ"; B.buildPerson(+e.target.value); updateRainNote(); });
   $("#optDoors").addEventListener("change", e => { doorsOpen = e.target.checked; });
   $("#optLabels").addEventListener("change", e => { labelsOn = e.target.checked; });
+
+  // Colour pickers are built from data: upholstery from B.FABRICS (materials.js), light colours from the presets in lights.js.
+  // Each option's colour reaches the CSS as --sw (the swatch), not as a fixed colour in the stylesheet.
+  // Upholstery: the sofa and the armchairs are chosen separately. `def` = the decision (also what the shopping list has).
+  const UPHOLSTERY = [
+    { id: "sofaFabric", mats: [M.kivik], def: "tibbleby" },
+    { id: "armFabric", mats: [M.armchair, M.armchairSeat], def: "charcoal" },
+  ];
+  const fabricItems = B.FABRICS.flatMap(g => g.items);
+  UPHOLSTERY.forEach(u => {
+    $("#" + u.id).innerHTML = B.FABRICS.map(g => "<div class='fabRow'><span class='fam'>" + g.family + "</span><div class='sws'>" +
+      g.items.map(i => {
+        const id = u.id + "-" + i.key;
+        return "<input type='radio' name='" + u.id + "' id='" + id + "' value='" + i.key + "'" + (i.key === u.def ? " checked" : "") + ">" +
+          "<label for='" + id + "' title='" + i.name + "' style='--sw:" + i.color + "'><span class='vh'>" + i.name + "</span></label>";
+      }).join("") + "</div></div>").join("");
+  });
+  // Reads both upholstery pickers and applies them. Also called once at start (main.js).
+  function syncFabrics() {
+    UPHOLSTERY.forEach(u => {
+      const key = document.querySelector("input[name=" + u.id + "]:checked").value;
+      B.setFabric(u.mats, key);
+      $("#" + u.id + "Name").textContent = "נבחר: " + fabricItems.find(i => i.key === key).name + (key === u.def ? " (ההחלטה)" : "");
+    });
+  }
+  UPHOLSTERY.forEach(u => radios(u.id, syncFabrics));
+
+  const chip = (group, p, color, checked) =>
+    "<input type='radio' name='" + group + "' id='" + group + "-" + p.k + "' value='" + p.k + "'" + (checked ? " checked" : "") + ">" +
+    "<label for='" + group + "-" + p.k + "' style='--sw:" + color + "'><span class='dot'></span><span>" + p.name + "</span><span class='num'>" + p.k + "K</span></label>";
+  $("#warmPresets").innerHTML = B.WARM_PRESETS.map(p => chip("warmPreset", p, B.warmHex(B.warmTone(p.k)), false)).join("");
+  $("#ceilPresets").innerHTML = B.CEILING_PRESETS.map(p => chip("ceilPreset", p, p.color, p.def)).join("");
+  radios("warmPreset", k => { $("#warmTone").value = Math.round(B.warmTone(+k) * 100); syncLighting(); });
+  radios("ceilPreset", () => syncLighting());
+
   // Lighting: reads every lighting control and applies them (lights.js). Also called once at start (main.js).
   function syncLighting() {
     const tone = +$("#warmTone").value, wl = +$("#warmLevel").value, cl = +$("#ceilLevel").value;
     $("#warmToneOut").textContent = "≈" + B.warmKelvin(tone / 100) + "K";
     $("#warmLevelOut").textContent = wl + "%";
     $("#ceilLevelOut").textContent = cl + "%";
+    // the lamp preset that matches the slider stays marked; fine-tuning in between unmarks them all
+    document.querySelectorAll("input[name=warmPreset]").forEach(r => { r.checked = Math.round(B.warmTone(+r.value) * 100) === tone; });
+    const ceil = B.CEILING_PRESETS.find(p => p.k === +document.querySelector("input[name=ceilPreset]:checked").value);
     B.setWarmLights({ on: $("#warmOn").checked, tone: tone / 100, level: wl / 100 });
-    B.setCeilingLights({ on: $("#ceilOn").checked, level: cl / 100 });
+    B.setCeilingLights({ on: $("#ceilOn").checked, level: cl / 100, color: ceil.color });
     B.setEvening($("#optEvening").checked);
   }
   ["#optEvening", "#warmOn", "#warmTone", "#warmLevel", "#ceilOn", "#ceilLevel"].forEach(id => $(id).addEventListener("input", syncLighting));
@@ -283,5 +321,5 @@
     downAt = null;
   });
 
-  Object.assign(B, { updateWardKv, updateKitchenNote, updateRainNote, updateSofaKv, renderShopping, syncLighting, setDoorProp, stepDoors, updateLabels, goView, stepCamera });
+  Object.assign(B, { updateWardKv, updateKitchenNote, updateRainNote, updateSofaKv, renderShopping, syncLighting, syncFabrics, setDoorProp, stepDoors, updateLabels, goView, stepCamera });
 })(window.B);

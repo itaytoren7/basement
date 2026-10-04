@@ -1,6 +1,6 @@
 /* materials.js — procedural textures (drawn on canvas, nothing to download) and all materials.
  * Change a finish here and every object that uses it updates.
- * Exposes: B.tex, B.M, B.std, B.flutedTex
+ * Exposes: B.tex, B.M, B.std, B.flutedTex, B.FABRICS, B.setFabric(mats, key)
  */
 (function (B) {
   "use strict";
@@ -214,8 +214,19 @@
         g.fillRect(i * 64 + 6, j * 64 + 6, 26, 20);
       }
     }),
+    // neutral woven fabric, tinted by the material colour (upholstery colour options)
+    weave: canvasTex(128, 128, (g, w, h) => {
+      const r = rng(67);
+      g.fillStyle = "#f2f2f2"; g.fillRect(0, 0, w, h);
+      for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) {
+        const v = r(), across = ((x + y) / 2) % 2;
+        g.fillStyle = v < 0.35 ? "rgba(255,255,255,.35)" : v < 0.7 ? "rgba(0,0,0,.09)" : "rgba(0,0,0,.04)";
+        g.fillRect(x, y, across ? 2 : 1, across ? 1 : 2);
+      }
+    }),
   };
   tex.tibbleby.repeat.set(5, 5);
+  tex.weave.repeat.set(5, 5);
 
   const std = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.85, metalness: 0 }, o));
   // Note: there is no environment map, so keep metalness low (≤ 0.45) or metals render black.
@@ -240,7 +251,8 @@
     mustard: std({ color: "#a8771c", roughness: 1 }),                     // throw pillows
     navy: std({ color: "#1f2a44", roughness: 1 }),
     fabric2: std({ color: "#584f61", roughness: 1 }),
-    armchair: std({ color: "#473f4d", roughness: 1 }),
+    armchair: std({ color: "#473f4d", roughness: 1 }),                    // armchair body
+    armchairSeat: std({ color: "#584f61", roughness: 1 }),                // armchair seat cushions (own material: M.fabric2 is the desk chair)
     bedBase: std({ color: "#bdb3a5", roughness: 1 }),
     mattress: std({ color: "#f3f1ec", roughness: 1 }),
     duvet: std({ color: "#dfe3e6", roughness: 1 }),
@@ -265,5 +277,42 @@
     ac: std({ color: "#fafafa", roughness: 0.4 }),
   };
 
-  Object.assign(B, { tex, M, std, flutedTex });
+  // Upholstery colour options for the panel (sofa and armchairs, chosen separately).
+  // `tex: "tibbleby"` uses the KIVIK cover's own mélange texture; the others tint the neutral weave.
+  // Colours are a little darker than the real fabric, because the model's daylight is bright.
+  const FABRICS = [
+    { family: "לבן ובז׳", items: [
+      { key: "offwhite", name: "לבן שבור", color: "#d9d5cc" },
+      { key: "cream", name: "שמנת", color: "#d2c4a6" },
+      { key: "tibbleby", name: "בז׳/אפור · Tibbleby", color: "#aca497", tex: "tibbleby" },
+      { key: "sand", name: "בז׳ חולי", color: "#b39b7b" },
+    ] },
+    { family: "כחול ותכלת", items: [
+      { key: "skyblue", name: "תכלת", color: "#9cbdd4" },
+      { key: "dustyblue", name: "כחול אפרפר", color: "#6c89a3" },
+      { key: "denim", name: "כחול ג׳ינס", color: "#3e5e86" },
+      { key: "navyblue", name: "כחול כהה", color: "#24334f" },
+    ] },
+    { family: "חום", items: [
+      { key: "taupe", name: "טאופ", color: "#8b7b6a" },
+      { key: "camel", name: "קאמל", color: "#a06c3e" },
+      { key: "walnut", name: "חום אגוז", color: "#6c4930" },
+      { key: "chocolate", name: "שוקולד", color: "#43302a" },
+    ] },
+    { family: "כהה", items: [
+      { key: "charcoal", name: "פחם כהה", color: "#473f4d" },
+    ] },
+  ];
+  // Apply fabric `key` to mats[0] (body); mats[1], if given, gets a slightly lighter shade (seat cushions).
+  function setFabric(mats, key) {
+    const f = FABRICS.flatMap(g => g.items).find(i => i.key === key);
+    mats.forEach((m, i) => {
+      m.map = f.tex ? tex[f.tex] : tex.weave;
+      m.color.set(f.tex ? "#ffffff" : f.color);
+      if (i > 0) m.color.offsetHSL(0, 0, f.tex ? -0.04 : 0.06);
+      m.needsUpdate = true;
+    });
+  }
+
+  Object.assign(B, { tex, M, std, flutedTex, FABRICS, setFabric });
 })(window.B);

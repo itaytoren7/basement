@@ -66,10 +66,21 @@
     </section>
 
     <section class="block" aria-labelledby="h-sofa">
-      <span class="eyebrow">IKEA KIVIK · ריפוד Tibbleby בז׳/אפור</span>
-      <h2 id="h-sofa">ספה</h2>
-      <p class="note">ספה תלת־מושבית <span class="num">228×95×83</span>, גובה מושב <span class="num">45</span>, פונה צפונה לטלוויזיה. שתי כריות צהוב חרדל ושתיים כחול כהה. הכורסאות נשארות בפחם כהה.</p>
+      <span class="eyebrow">IKEA KIVIK · צבעי ריפוד</span>
+      <h2 id="h-sofa">ספה וכורסאות</h2>
+      <p class="note">ספה תלת־מושבית <span class="num">228×95×83</span>, גובה מושב <span class="num">45</span>, פונה צפונה לטלוויזיה, עם שתי כריות צהוב חרדל ושתיים כחול כהה.</p>
       <dl class="kv" id="sofaKv"></dl>
+      <div class="field">
+        <span class="lbl" id="lbl-sofaFabric">צבע הספה</span>
+        <div class="fabrics" id="sofaFabric" role="radiogroup" aria-labelledby="lbl-sofaFabric"></div>
+        <p class="note" id="sofaFabricName"></p>
+      </div>
+      <div class="field">
+        <span class="lbl" id="lbl-armFabric">צבע הכורסאות</span>
+        <div class="fabrics" id="armFabric" role="radiogroup" aria-labelledby="lbl-armFabric"></div>
+        <p class="note" id="armFabricName"></p>
+      </div>
+      <p class="note">הצבעים כאן להשוואה, כל אחד בנפרד. ההחלטה (וגם רשימת הקניות): Tibbleby בז׳/אפור לספה, פחם כהה לכורסאות.</p>
     </section>
 
     <section class="block" aria-labelledby="h-ward">
@@ -155,7 +166,11 @@
         <p class="note">BLÅSVERK על השידה הדרומית, מנורת עמידה ליד הספה, פס לד מתחת למדף במטבחון ומנורה קטנה על שולחן הכתיבה.</p>
       </div>
       <div class="field">
-        <label class="lbl" for="warmTone">גוון: מצהוב בהיר לכתום</label>
+        <span class="lbl" id="lbl-warmPresets">גוון המנורות</span>
+        <div class="chips" id="warmPresets" role="radiogroup" aria-labelledby="lbl-warmPresets"></div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="warmTone">כוונון עדין: מצהוב בהיר לכתום</label>
         <div class="rangeRow"><input type="range" id="warmTone" min="0" max="100" step="1" value="30"><output for="warmTone" id="warmToneOut" class="num"></output></div>
         <div class="toneBar" aria-hidden="true"></div>
       </div>
@@ -165,7 +180,11 @@
       </div>
       <div class="field">
         <div class="tgl"><input type="checkbox" id="ceilOn" checked><label for="ceilOn">תאורת תקרה</label></div>
-        <p class="note">שני גופי תאורה עגולים ושטוחים (<span class="num">Ø40</span>) לאורך החדר, באור לבן ניטרלי־קר.</p>
+        <p class="note">שני גופי תאורה עגולים ושטוחים (<span class="num">Ø40</span>) לאורך החדר.</p>
+      </div>
+      <div class="field">
+        <span class="lbl" id="lbl-ceilPresets">גוון תאורת התקרה</span>
+        <div class="chips" id="ceilPresets" role="radiogroup" aria-labelledby="lbl-ceilPresets"></div>
       </div>
       <div class="field">
         <label class="lbl" for="ceilLevel">עוצמת תאורת התקרה</label>

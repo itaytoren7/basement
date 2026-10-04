@@ -1,8 +1,9 @@
 /* lights.js — lamps, ceiling lights and the "evening" switch.
  * Every lamp is one line in LAMPS (plan coordinates, cm): move a lamp by editing its x/z, add one by adding a line.
- * The warm lamps share one colour + brightness control; the two ceiling lights have their own switch and brightness.
+ * The warm lamps share one colour + brightness control; the two ceiling lights have their own colour, switch and brightness.
  * None of these lights cast shadows (keeps it fast). Intensities are three.js legacy units, like the daylight in core.js.
- * Exposes: B.LAMPS, B.CEILING_LIGHTS, B.WARM_RANGE, B.warmKelvin(tone), B.setWarmLights(s), B.setCeilingLights(s), B.setEvening(on)
+ * Exposes: B.LAMPS, B.CEILING_LIGHTS, B.WARM_RANGE, B.WARM_PRESETS, B.CEILING_PRESETS, B.warmKelvin(tone), B.warmTone(k),
+ *          B.warmHex(tone), B.setWarmLights(s), B.setCeilingLights(s), B.setEvening(on)
  */
 (function (B) {
   "use strict";
@@ -11,7 +12,16 @@
 
   // Warm-lamp colour: tone 0 = light yellow (~3000K) … tone 1 = orange (~2000K).
   const WARM_RANGE = { from: "#ffe2a6", to: "#ff9440", kFrom: 3000, kTo: 2000 };
-  const CEILING_COLOR = "#fff3e6"; // neutral-to-cool white, ~4500K
+  // Colour options in the panel. Warm lamps: points on the slider above. Ceiling lights: their own colours.
+  const WARM_PRESETS = [
+    { k: 3000, name: "לבן חם" }, { k: 2700, name: "חם" }, { k: 2200, name: "ענבר" }, { k: 2000, name: "כתום" },
+  ];
+  const CEILING_PRESETS = [
+    { k: 3000, name: "לבן חם", color: "#ffe2a6" },
+    { k: 4000, name: "ניטרלי", color: "#fff3e6", def: true },
+    { k: 5000, name: "לבן קר", color: "#fbf9f6" },
+    { k: 6500, name: "אור יום", color: "#eef3ff" },
+  ];
 
   // kind: "blasverk" | "floor" | "desk" | "strip". y = the surface the lamp stands on (for "strip": underside of the shelf).
   // power = light intensity at 100% brightness; reach = distance (cm) at which the light fades out.
@@ -102,24 +112,26 @@
     mesh(new THREE.CylinderGeometry(20, 20, 3.5, 48), M.white, L.x, H - 1.75, L.z, ceiling);
     const diffuser = glow(ceilGlows, { color: "#ffffff" }, "#ffffff", 1.4);
     mesh(new THREE.CylinderGeometry(18.5, 18.5, 0.4, 48), diffuser, L.x, H - 3.7, L.z, ceiling);
-    addLight(ceilLights, new THREE.PointLight(CEILING_COLOR, 0, L.reach, 1.5), L.x, H - 14, L.z, L);
+    addLight(ceilLights, new THREE.PointLight(0xffffff, 0, L.reach, 1.5), L.x, H - 14, L.z, L);
   });
-  ceilGlows.forEach(g => g.mat.emissive.set(CEILING_COLOR));
 
   /* ---------- controls (wired in ui.js) ---------- */
   const warmFrom = new THREE.Color(WARM_RANGE.from), warmTo = new THREE.Color(WARM_RANGE.to);
   const warmKelvin = (tone) => Math.round((WARM_RANGE.kFrom + (WARM_RANGE.kTo - WARM_RANGE.kFrom) * tone) / 50) * 50;
+  const warmTone = (k) => (WARM_RANGE.kFrom - k) / (WARM_RANGE.kFrom - WARM_RANGE.kTo);
+  const warmColor = (tone) => new THREE.Color().lerpColors(warmFrom, warmTo, tone);
+  const warmHex = (tone) => "#" + warmColor(tone).getHexString();   // sRGB, for the panel swatches
   // s = { on, tone 0..1, level 0..1 }: light colour and glowing shades change together.
   function setWarmLights(s) {
-    const c = new THREE.Color().lerpColors(warmFrom, warmTo, s.tone), k = s.on ? s.level : 0;
+    const c = warmColor(s.tone), k = s.on ? s.level : 0;
     warmLights.forEach(l => { l.color.copy(c); l.intensity = l.userData.power * k; });
     warmGlows.forEach(g => { g.mat.emissive.copy(c).multiply(g.tint); g.mat.emissiveIntensity = g.gain * k; });
   }
-  // s = { on, level 0..1 }
+  // s = { on, level 0..1, color }
   function setCeilingLights(s) {
     const k = s.on ? s.level : 0;
-    ceilLights.forEach(l => { l.intensity = l.userData.power * k; });
-    ceilGlows.forEach(g => { g.mat.emissiveIntensity = g.gain * (s.on ? 0.3 + 0.7 * s.level : 0); });
+    ceilLights.forEach(l => { l.color.set(s.color); l.intensity = l.userData.power * k; });
+    ceilGlows.forEach(g => { g.mat.emissive.set(s.color); g.mat.emissiveIntensity = g.gain * (s.on ? 0.3 + 0.7 * s.level : 0); });
   }
   // Evening: daylight (sun, sky, ambient, fill) and the window glow drop to 15%, so the lamps show.
   function setEvening(on) {
@@ -130,5 +142,5 @@
     });
   }
 
-  Object.assign(B, { LAMPS, CEILING_LIGHTS, WARM_RANGE, warmKelvin, setWarmLights, setCeilingLights, setEvening });
+  Object.assign(B, { LAMPS, CEILING_LIGHTS, WARM_RANGE, WARM_PRESETS, CEILING_PRESETS, warmKelvin, warmTone, warmHex, setWarmLights, setCeilingLights, setEvening });
 })(window.B);
