@@ -19,7 +19,7 @@
     [463, 483, 648, 698], // 50 cm opening to the niche
     [483, 547, 648, 720], // shelf niche
   ];
-  MAIN_FLOORS.forEach(r => floorRect(r[0], r[1], r[2], r[3], 0, M.floor, 60));
+  MAIN_FLOORS.forEach(r => floorRect(r[0], r[1], r[2], r[3], 0, M.floor, [160, 640], true)); // parquet: one texture repeat = 160 × 640 cm
   BATH_FLOORS.forEach(r => floorRect(r[0], r[1], r[2], r[3], 0, M.bathFloor, 30));
 
   // ceiling is shown only in first-person views (ui.js → applyMode)

@@ -11,7 +11,10 @@
   B.setBathDoor("solid");
   B.buildPerson(165);
   B.updateRainNote();
-  B.buildWardrobe("storklinta");
+  B.buildWardrobe("paxglass");
+  B.updateSofaKv();
+  B.renderShopping();
+  B.syncLighting();
   B.buildTvMesh(); B.setTvPreset("north");
 
   function resize() {

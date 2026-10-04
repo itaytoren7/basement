@@ -65,12 +65,19 @@
       <p class="note">סיבוב ראש: כמה מעלות צריך להסתובב מהכיוון שהמושב פונה אליו. עד 25° נוח, מעל 50° צריך לשבת בזווית.</p>
     </section>
 
+    <section class="block" aria-labelledby="h-sofa">
+      <span class="eyebrow">IKEA KIVIK · ריפוד Tibbleby בז׳/אפור</span>
+      <h2 id="h-sofa">ספה</h2>
+      <p class="note">ספה תלת־מושבית <span class="num">228×95×83</span>, גובה מושב <span class="num">45</span>, פונה צפונה לטלוויזיה. שתי כריות צהוב חרדל ושתיים כחול כהה. הכורסאות נשארות בפחם כהה.</p>
+      <dl class="kv" id="sofaKv"></dl>
+    </section>
+
     <section class="block" aria-labelledby="h-ward">
       <span class="eyebrow">סעיף 2 · אפשרויות הארון</span>
       <h2 id="h-ward">ארון בגדים</h2>
       <div class="opts" role="radiogroup" aria-label="דגם ארון">
-        <div class="opt"><input type="radio" name="ward" id="w-storklinta" value="storklinta" checked><label for="w-storklinta"><span class="t">IKEA PAX / STORKLINTA</span><span class="p num">2,335 ₪</span><span class="d">200×60×201 · מסגרת לבנה, דלתות בגוון אלון · 4 דלתות פתיחה</span></label></div>
-          <div class="opt"><input type="radio" name="ward" id="w-storklinta" value="storklinta" checked><label for="w-storklinta"><span class="t">IKEA PAX · התכנון של איתי</span><span class="p num">249.8×37.4×201.2 ס״מ</span><span class="d">מסגרת אלון בהיר · 5 דלתות פתיחה · 3 תאים: מגירות, תלייה ומדפים</span></label></div>
+        <div class="opt"><input type="radio" name="ward" id="w-paxglass" value="paxglass" checked><label for="w-paxglass"><span class="t">IKEA PAX · דלתות זכוכית</span><span class="p num">249.8×37.4×201.2 ס״מ</span><span class="d">אותו תכנון, עם 5 דלתות זכוכית שקופה במסגרת אלון בהיר · רואים את המגירות, התלייה והמדפים</span></label></div>
+        <div class="opt"><input type="radio" name="ward" id="w-storklinta" value="storklinta"><label for="w-storklinta"><span class="t">IKEA PAX · התכנון של איתי</span><span class="p num">249.8×37.4×201.2 ס״מ</span><span class="d">מסגרת אלון בהיר · 5 דלתות פתיחה · 3 תאים: מגירות, תלייה ומדפים</span></label></div>
         <div class="opt"><input type="radio" name="ward" id="w-hasvik" value="hasvik"><label for="w-hasvik"><span class="t">IKEA PAX / HASVIK</span><span class="p num">2,400 ₪</span><span class="d">200×66×201 · אלון מולבן · 2 דלתות הזזה</span></label></div>
         <div class="opt"><input type="radio" name="ward" id="w-harel" value="harel"><label for="w-harel"><span class="t">ארונות הראל · דגם גיל</span><span class="p num">~3,750 ₪</span><span class="d">200×52.5×213 · אלון מבוקע · 5 דלתות ומגירות חיצוניות</span></label></div>
         <div class="opt"><input type="radio" name="ward" id="w-carp" value="carp"><label for="w-carp"><span class="t">נגרות עד התקרה</span><span class="p">לפי הצעת נגר</span><span class="d">200×60×220 · עץ בהיר · כמו בשרטוט</span></label></div>
@@ -128,6 +135,44 @@
       <p class="callout" id="rainNote"></p>
     </section>
 
+    <section class="block" aria-labelledby="h-shop">
+      <span class="eyebrow">מה קונים ב־IKEA</span>
+      <h2 id="h-shop">רשימת קניות</h2>
+      <table class="readout shop" aria-label="רשימת קניות">
+        <thead><tr><th>פריט</th><th>מחיר</th></tr></thead>
+        <tbody id="shopList"></tbody>
+        <tfoot id="shopTotal"></tfoot>
+      </table>
+      <p class="note" id="shopNote"></p>
+    </section>
+
+    <section class="block" aria-labelledby="h-light">
+      <span class="eyebrow">מנורות ותאורת תקרה</span>
+      <h2 id="h-light">תאורה</h2>
+      <div class="tgl"><input type="checkbox" id="optEvening"><label for="optEvening">ערב: אור היום יורד ל־<span class="num">15%</span></label></div>
+      <div class="field">
+        <div class="tgl"><input type="checkbox" id="warmOn" checked><label for="warmOn">מנורות חמות</label></div>
+        <p class="note">BLÅSVERK על השידה הדרומית, מנורת עמידה ליד הספה, פס לד מתחת למדף במטבחון ומנורה קטנה על שולחן הכתיבה.</p>
+      </div>
+      <div class="field">
+        <label class="lbl" for="warmTone">גוון: מצהוב בהיר לכתום</label>
+        <div class="rangeRow"><input type="range" id="warmTone" min="0" max="100" step="1" value="30"><output for="warmTone" id="warmToneOut" class="num"></output></div>
+        <div class="toneBar" aria-hidden="true"></div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="warmLevel">עוצמת המנורות</label>
+        <div class="rangeRow"><input type="range" id="warmLevel" min="0" max="100" step="1" value="70"><output for="warmLevel" id="warmLevelOut" class="num"></output></div>
+      </div>
+      <div class="field">
+        <div class="tgl"><input type="checkbox" id="ceilOn" checked><label for="ceilOn">תאורת תקרה</label></div>
+        <p class="note">שני גופי תאורה עגולים ושטוחים (<span class="num">Ø40</span>) לאורך החדר, באור לבן ניטרלי־קר.</p>
+      </div>
+      <div class="field">
+        <label class="lbl" for="ceilLevel">עוצמת תאורת התקרה</label>
+        <div class="rangeRow"><input type="range" id="ceilLevel" min="0" max="100" step="1" value="60"><output for="ceilLevel" id="ceilLevelOut" class="num"></output></div>
+      </div>
+    </section>
+
     <section class="block" aria-labelledby="h-disp">
       <h2 id="h-disp">תצוגה</h2>
       <div class="toggles">
@@ -167,6 +212,7 @@
 <script src="js/room.js"></script>
 <script src="js/furniture.js"></script>
 <script src="js/bathroom.js"></script>
+<script src="js/lights.js"></script>
 <script src="js/tv.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>

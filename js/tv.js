@@ -95,7 +95,7 @@
 
   // seats for the viewing readout: plan position, facing direction, eye height
   const SEATS = [
-    { name: "ספה", p: [276, 470], f: [0, -1], eye: 105 },
+    { name: "ספה", p: [276, 480], f: [0, -1], eye: 108 },   // KIVIK, centre seat
     { name: "כורסה", p: [160, 340], f: [1, 0], eye: 105 },
     { name: "מיטה", p: [60, 150], f: [1, 0], eye: 100 },
   ];

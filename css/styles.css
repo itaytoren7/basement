@@ -19,6 +19,8 @@
   --bad: #b3261e;
   --bad-bg: #fbe4e2;
   --scene-bg: #e3e6eb;
+  --lamp-3000: #ffe2a6;   /* ends of the warm-lamp colour slider: light colours, the same in both themes */
+  --lamp-2000: #ff9440;
   --font-ui: "IBM Plex Sans Hebrew", "Assistant", "Arial Hebrew", "Segoe UI", Arial, sans-serif;
   --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
@@ -86,6 +88,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .readout th { text-align: right; font-weight: 500; color: var(--muted); font-size: 12px; padding: 0 0 4px; }
 .readout td { padding: 6px 0; border-top: 1px solid var(--line); vertical-align: middle; }
 .readout td:last-child, .readout th:last-child { text-align: left; }
+.shop td { vertical-align: top; }
+.shop td:last-child, .shop tfoot th:last-child { white-space: nowrap; padding-inline-start: 10px; }
+.shop .sub { display: block; color: var(--muted); font-size: 12px; }
+.shop tfoot th { color: var(--fg); font-weight: 600; font-size: 13.5px; padding: 8px 0 0; border-top: 1px solid var(--line); }
+.toneBar { height: 6px; border-radius: 99px; margin-inline-end: 68px; background: linear-gradient(to left, var(--lamp-3000), var(--lamp-2000)); }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; text-align: left; }

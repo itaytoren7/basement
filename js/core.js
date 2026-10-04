@@ -1,7 +1,7 @@
 /* core.js — shared namespace, renderer, scene, camera, lights and geometry helpers.
  *
  * Every script adds to one global object, window.B, and later scripts read from it.
- * Load order (see index.html): core → materials → room → furniture → bathroom → tv → ui → main.
+ * Load order (see index.html): core → materials → room → furniture → bathroom → lights → tv → ui → main.
  *
  * Plan coordinates (used everywhere): centimetres, measured from the designer's drawing.
  *   origin = outer top-left corner of the building outline on the drawing
@@ -40,9 +40,9 @@ window.B = window.B || {};
   controls.enableDamping = true;
   controls.dampingFactor = 0.09;
 
-  /* ---------- lights ---------- */
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xcfc6b8, 0.72));
-  scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+  /* ---------- daylight (lamps and ceiling lights are in lights.js) ---------- */
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xcfc6b8, 0.72); scene.add(hemi);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.18); scene.add(ambient);
   const sun = new THREE.DirectionalLight(0xfff6ea, 0.85);
   sun.position.set(-220, 700, 260);
   sun.castShadow = true;
@@ -54,6 +54,7 @@ window.B = window.B || {};
   const fill = new THREE.PointLight(0xfff3e0, 0.35, 900, 1.6);
   fill.position.set(250 - CX, 200, 330 - CZ);
   scene.add(fill);
+  const daylight = [hemi, ambient, sun, fill]; // dimmed together by the "evening" switch (lights.js → setEvening)
 
   /* ---------- geometry helpers ---------- */
   const root = new THREE.Group(); scene.add(root);
@@ -80,11 +81,14 @@ window.B = window.B || {};
     m.position.set(x - CX, y, z - CZ); m.castShadow = true; m.receiveShadow = true;
     (parent || root).add(m); return m;
   }
-  // Horizontal rectangle (floor) with UVs scaled so one texture repeat = `tile` cm.
-  function floorRect(x0, x1, z0, z1, y, mat, tile) {
+  // Horizontal rectangle (floor) with UVs scaled so one texture repeat = `tile` cm (or [x, z] cm).
+  // `anchored`: measure UVs from the plan origin, so neighbouring floor pieces continue the same pattern.
+  function floorRect(x0, x1, z0, z1, y, mat, tile, anchored) {
+    const [tx, tz] = Array.isArray(tile) ? tile : [tile, tile];
+    const ox = anchored ? x0 : 0, oz = anchored ? -z1 : 0;
     const g = new THREE.PlaneGeometry(x1 - x0, z1 - z0);
     const uv = g.attributes.uv;
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * (x1 - x0) / tile, uv.getY(i) * (z1 - z0) / tile);
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * (x1 - x0) + ox) / tx, (uv.getY(i) * (z1 - z0) + oz) / tz);
     const m = new THREE.Mesh(g, mat);
     m.rotation.x = -Math.PI / 2;
     m.position.set((x0 + x1) / 2 - CX, y, (z0 + z1) / 2 - CZ);
@@ -94,5 +98,5 @@ window.B = window.B || {};
   // Plan point → scene vector.
   const V = (x, y, z) => new THREE.Vector3(x - CX, y, z - CZ);
 
-  Object.assign(B, { canvas, stage, renderer, scene, camera, controls, sun, root, wallMeshes, box, lbox, cyl, floorRect, V });
+  Object.assign(B, { canvas, stage, renderer, scene, camera, controls, sun, daylight, root, wallMeshes, box, lbox, cyl, floorRect, V });
 })(window.B);

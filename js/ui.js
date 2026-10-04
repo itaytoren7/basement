@@ -1,6 +1,6 @@
 /* ui.js — panel readouts, labels, camera views, door animation, theme sync and control wiring.
- * Exposes: B.updateWardKv, B.updateKitchenNote, B.updateRainNote, B.setDoorProp, B.stepDoors,
- *          B.updateLabels, B.goView, B.stepCamera
+ * Exposes: B.updateWardKv, B.updateKitchenNote, B.updateRainNote, B.updateSofaKv, B.renderShopping, B.syncLighting,
+ *          B.setDoorProp, B.stepDoors, B.updateLabels, B.goView, B.stepCamera
  */
 (function (B) {
   "use strict";
@@ -36,9 +36,41 @@
       "גובה החלל במקלחון אחרי ההגבהה: <b class='num'>205</b> ס״מ. בין הראש לראש הגשם: <b class='num'>" + gap + "</b> ס״מ <span class='pill " + cls + "'>" + word + "</span>";
   }
 
+  // Clearances around the KIVIK sofa, to the kitchenette counter front (z 578), the east wall beside it
+  // (x 473: the entry-door wall and the alcove) and the coffee table's south edge (z 382). Under 60 → warning.
+  function updateSofaKv() {
+    const S = B.SOFA;
+    const gaps = [
+      ["מאחור, עד דלפק המטבחון", 578 - S.z1],
+      ["מהקצה המזרחי עד הקיר", 473 - S.x1],
+      ["מקדימה, עד שולחן הקפה", S.z0 - 382],
+    ];
+    $("#sofaKv").innerHTML =
+      "<dt>מיקום</dt><dd class='num'>x " + S.x0 + "–" + S.x1 + " · z " + S.z0 + "–" + S.z1 + "</dd>" +
+      gaps.map(([k, v]) => "<dt>" + k + "</dt><dd><span class='num'>" + v + " ס״מ</span>" +
+        (v < 60 ? " <span class='pill warn'>פחות מ־60</span>" : "") + "</dd>").join("");
+  }
+
+  // Shopping list. `unsure` = price not confirmed yet (shown with "?"); the total adds up by itself.
+  const n = (x) => "<span class='num'>" + x + "</span>";
+  const SHOPPING = [
+    { name: "KIVIK", what: "ספה תלת־מושבית", sub: n("228×95×83") + " · ריפוד Tibbleby בז׳/אפור · שלד " + n("1,950") + " + ריפוד " + n(345), price: 2295 },
+    { name: "STORKLINTA × 2", what: "שידת 2 מגירות, אפקט אלון", sub: n("40×50×53") + " · " + n(325) + " ₪ ליחידה", price: 650 },
+    { name: "BLÅSVERK", what: "מנורת שולחן צהובה", sub: "גובה " + n(36) + " · המחיר נקרא מתג מטושטש", price: 95, unsure: true },
+    { name: "LOKALTÅG", what: "שטיח בערימה קצרה, בז׳/אפור", sub: n("133×195"), price: 245 },
+  ];
+  const shekel = (v, unsure) => v.toLocaleString("en-US") + " ₪" + (unsure ? "?" : "");
+  function renderShopping() {
+    $("#shopList").innerHTML = SHOPPING.map(i =>
+      "<tr><td><b>" + i.name + "</b> · " + i.what + "<span class='sub'>" + i.sub + "</span></td><td class='num'>" + shekel(i.price, i.unsure) + "</td></tr>").join("");
+    const total = SHOPPING.reduce((t, i) => t + i.price, 0), unsure = SHOPPING.some(i => i.unsure);
+    $("#shopTotal").innerHTML = "<tr><th>סה״כ</th><th class='num'>" + shekel(total, unsure) + "</th></tr>";
+    $("#shopNote").textContent = unsure ? "סימן שאלה: המחיר עוד לא אושר." : "";
+  }
+
   /* ---------- labels (HTML overlay, projected every frame) ---------- */
   const LABELS = [
-    ["מיטה", 120, 70, 150], ["ארון בגדים", 54, 240, 540], ["מטבחון", 220, 108, 610], ["ספה", 276, 92, 468],
+    ["מיטה", 120, 70, 150], ["ארון בגדים", 54, 240, 540], ["מטבחון", 220, 108, 610], ["ספה KIVIK", 276, 95, 470],
     ["כורסה", 170, 96, 340], ["שולחן כתיבה", 434, 88, 83], ["מקלחון", 204, 212, 700], ["כיור", 312, 118, 752],
     ["אסלה", 422, 64, 725], ["נישת מדפים", 515, 205, 684], ["ארון בגומחה", 511, 228, 560],
     ["כניסה מהמדרגות", 478, 222, 375], ["קיר המדרגות", 464, 236, 150, "stairs"],
@@ -70,7 +102,7 @@
     over: { pos: V(650, 690, 1040), look: V(290, 0, 410), fp: false },
     plan: { pos: V(286, 1150, 402), look: V(286, 0, 400), fp: false },
     entry: { pos: V(462, 160, 372), look: V(100, 105, 330), fp: true },
-    sofa: { pos: V(276, 108, 474), look: V(300, 100, 100), fp: true },
+    sofa: { pos: V(276, 108, 480), look: V(251, 106, 20), fp: true },   // seated on the KIVIK, looking at the TV
     bed: { pos: V(62, 102, 150), look: V(464, 105, 225), fp: true },
     arm: { pos: V(158, 106, 340), look: V(464, 108, 270), fp: true },
     kitchen: { pos: V(260, 190, 590), look: V(220, 80, 560), fp: true },
@@ -175,6 +207,17 @@
   $("#personH").addEventListener("input", e => { $("#personHOut").textContent = e.target.value + " ס״מ"; B.buildPerson(+e.target.value); updateRainNote(); });
   $("#optDoors").addEventListener("change", e => { doorsOpen = e.target.checked; });
   $("#optLabels").addEventListener("change", e => { labelsOn = e.target.checked; });
+  // Lighting: reads every lighting control and applies them (lights.js). Also called once at start (main.js).
+  function syncLighting() {
+    const tone = +$("#warmTone").value, wl = +$("#warmLevel").value, cl = +$("#ceilLevel").value;
+    $("#warmToneOut").textContent = "≈" + B.warmKelvin(tone / 100) + "K";
+    $("#warmLevelOut").textContent = wl + "%";
+    $("#ceilLevelOut").textContent = cl + "%";
+    B.setWarmLights({ on: $("#warmOn").checked, tone: tone / 100, level: wl / 100 });
+    B.setCeilingLights({ on: $("#ceilOn").checked, level: cl / 100 });
+    B.setEvening($("#optEvening").checked);
+  }
+  ["#optEvening", "#warmOn", "#warmTone", "#warmLevel", "#ceilOn", "#ceilLevel"].forEach(id => $(id).addEventListener("input", syncLighting));
   $("#optNew").addEventListener("change", e => {
     const on = e.target.checked;
     M.newWall.color.set(on ? "#f2c2bb" : "#f2f0eb");
@@ -240,5 +283,5 @@
     downAt = null;
   });
 
-  Object.assign(B, { updateWardKv, updateKitchenNote, updateRainNote, setDoorProp, stepDoors, updateLabels, goView, stepCamera });
+  Object.assign(B, { updateWardKv, updateKitchenNote, updateRainNote, updateSofaKv, renderShopping, syncLighting, setDoorProp, stepDoors, updateLabels, goView, stepCamera });
 })(window.B);

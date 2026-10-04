@@ -1,11 +1,36 @@
 /* furniture.js — furniture from the designer's layout, the kitchenette and the wardrobe options.
  * Positions are plan coordinates in cm, read off the drawing.
- * Exposes: B.buildKitchen(L), B.buildWardrobe(key), B.WARDS, B.WX
+ * Exposes: B.buildKitchen(L), B.buildWardrobe(key), B.WARDS, B.WX, B.SOFA
  */
 (function (B) {
   "use strict";
   if (B.failed) return;
   const { CX, CZ, M, std, root, box, lbox, cyl, doors } = B;
+
+  // Upholstered box with faces that bulge outward (cushions, sofa arms, throw pillows).
+  // w/h/d along x/y/z; `puff` = bulge in cm at the middle of each face, a number or [x, y, z].
+  function softMesh(w, h, d, puff, mat) {
+    const g = new THREE.BoxGeometry(w, h, d, 8, 6, 8);
+    const pos = g.attributes.position, half = [w / 2, h / 2, d / 2];
+    const pf = Array.isArray(puff) ? puff : [puff, puff, puff];
+    for (let i = 0; i < pos.count; i++) {
+      const c = [pos.getX(i), pos.getY(i), pos.getZ(i)], n = c.map((v, k) => v / half[k]);
+      const k = n.reduce((best, v, j) => Math.abs(v) > Math.abs(n[best]) ? j : best, 0); // which face
+      const [a, b] = [0, 1, 2].filter(j => j !== k);
+      c[k] += Math.sign(n[k]) * pf[k] * (1 - n[a] * n[a]) * (1 - n[b] * n[b]);
+      pos.setXYZ(i, c[0], c[1], c[2]);
+    }
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, mat);
+    m.castShadow = true; m.receiveShadow = true;
+    return m;
+  }
+  // Axis-aligned upholstered box in plan coordinates.
+  function soft(x0, x1, z0, z1, y0, y1, puff, mat) {
+    const m = softMesh(x1 - x0, y1 - y0, z1 - z0, puff, mat);
+    m.position.set((x0 + x1) / 2 - CX, (y0 + y1) / 2, (z0 + z1) / 2 - CZ);
+    root.add(m); return m;
+  }
 
   /* ---------- fixed furniture ---------- */
   // bed 140×200, headboard against the west wall under the window
@@ -17,16 +42,21 @@
   box(30, 58, 90, 146, 53, 66, M.pillow);
   box(30, 58, 154, 210, 53, 66, M.pillow);
   [[80, 86], [214, 220]].forEach(z => [[22, 28], [212, 218]].forEach(x => box(x[0], x[1], z[0], z[1], 0, 4, M.black)));
-  // nightstands + lamps
-  [[20, 80], [220, 280]].forEach(z => {
-    box(20, 55, z[0] + 4, z[1] - 4, 8, 50, M.oak);
-    box(54.6, 55.2, z[0] + 8, z[1] - 8, 30, 31, M.groove);
-    cyl(7, 3, 38, 51.5, (z[0] + z[1]) / 2, M.white);
-    cyl(1, 26, 38, 64, (z[0] + z[1]) / 2, M.black);
-    const shade = cyl(10, 16, 38, 82, (z[0] + z[1]) / 2, std({ color: "#f5ecd9", emissive: "#f3d9a4", emissiveIntensity: 0.35 }));
-    shade.castShadow = false;
+  // nightstands: IKEA STORKLINTA chest of 2 drawers, oak effect, 40 W × 50 D × 53 H, 4 cm from the bed on each side.
+  // Two flat drawers facing east, a finger-grip gap above each (no handles), a top that overhangs ~1 cm, a low plinth.
+  // The BLÅSVERK lamp on the south one is in lights.js.
+  const gripShadow = std({ color: "#3a2b1d", roughness: 1 });
+  [[36, 76], [224, 264]].forEach(([z0, z1]) => {
+    box(22, 64, z0 + 3, z1 - 3, 0, 5, gripShadow);                    // recessed plinth
+    box(20, 67.5, z0 + 1, z1 - 1, 5, 50.5, M.oak);                    // carcass
+    box(20, 70, z0, z1, 50.5, 53, M.oak);                             // top
+    [[5.5, 25.5], [28, 48]].forEach(([y0, y1]) => {
+      box(67.5, 69, z0 + 1.3, z1 - 1.3, y0, y1, M.oak);               // drawer front
+      box(66.8, 67.6, z0 + 1.3, z1 - 1.3, y1, y1 + 2.5, gripShadow);  // finger-grip gap above it
+    });
   });
-  box(170, 289, 59, 249, 0, 0.8, M.rug);
+  // rug: IKEA LOKALTÅG 133 × 195, short pile, beige/grey (texture in materials.js)
+  box(163, 296, 56.5, 251.5, 0, 1, [M.rugEdge, M.rugEdge, M.rug, M.rugEdge, M.rugEdge, M.rugEdge], root, { noCast: true });
   // Enlarged desk, centred on the east wall segment between the entry door and north wall
   box(399, 464, 80, 260, 72, 75, M.oak);
   [[401, 405], [458, 462]].forEach(x => [[82, 86], [254, 258]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 72, M.black)));
@@ -134,18 +164,38 @@
   box(366, 427, 298, 310, 40, 60, M.armchair);
   box(366, 427, 371, 383, 40, 60, M.armchair);
   box(368, 425, 310, 371, 40, 47, M.fabric2);
-  box(247, 327, 307, 382, 40, 43, M.oak);
+  box(247, 327, 307, 382, 40, 43, M.darkOak);                          // coffee table top: dark oak
   [[250, 253], [321, 324]].forEach(x => [[310, 313], [376, 379]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 40, M.black)));
-  // sofa 150 wide (faces north)
-  box(201, 351, 430, 506, 8, 40, M.fabric);
-  box(201, 351, 491, 506, 40, 82, M.fabric);
-  box(201, 213, 430, 491, 40, 62, M.fabric);
-  box(339, 351, 430, 491, 40, 62, M.fabric);
-  box(213.5, 275.5, 432, 490, 40, 49, M.fabric2);
-  box(276.5, 338.5, 432, 490, 40, 49, M.fabric2);
-  box(214, 275, 478, 491, 49, 78, M.fabric2);
-  box(277, 338, 478, 491, 49, 78, M.fabric2);
-  [[204, 208], [344, 348]].forEach(x => [[433, 437], [499, 503]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 8, M.black)));
+  /* ---------- sofa: IKEA KIVIK 3-seat, 228 × 95 × 83, Tibbleby beige/grey (faces north) ---------- */
+  // Centred on x 276; front edge 40 cm from the armchairs / coffee table. Seat height 45, seat depth 60.
+  const SOFA = { x0: 162, x1: 390, z0: 423, z1: 518, seatH: 45 };
+  (function kivik() {
+    const { x0, x1, z0, z1 } = SOFA, arm = 24, back = 20;
+    const sx0 = x0 + arm, sx1 = x1 - arm, mid = (sx0 + sx1) / 2;      // seat 180 wide
+    const backFront = z0 + 60;                                         // front of the back cushions at seat level
+    [[x0 + 5, x0 + 9], [x1 - 9, x1 - 5]].forEach(x => [[z0 + 5, z0 + 9], [z1 - 9, z1 - 5]].forEach(z => box(x[0], x[1], z[0], z[1], 0, 3, M.black)));
+    soft(sx0, sx1, z0 + 1, z1 - back, 3, 30, 0.6, M.kivik);           // base under the seat cushions
+    soft(x0, sx0, z0, z1, 3, 64, [0.8, 1.2, 0.8], M.kivik);            // wide, low, boxy arms
+    soft(sx1, x1, z0, z1, 3, 64, [0.8, 1.2, 0.8], M.kivik);
+    soft(sx0, sx1, z1 - back, z1, 3, 70, [0.8, 1, 0.8], M.kivik);     // back frame
+    [[sx0, mid], [mid, sx1]].forEach(([a, b]) => {
+      soft(a + 0.4, b - 0.4, z0 + 1, z1 - back, 30, 45, [1, 1.6, 1], M.kivik); // 2 large seat cushions
+      // 2 back cushions, leaning back 10°; bottom-front edge on the seat at backFront, top at 83
+      const t = 0.1745, h = 38.5, d = 20;
+      const c = softMesh(b - a - 1, h, d, [1, 1, 2.2], M.kivik);
+      c.rotation.x = t;
+      c.position.set((a + b) / 2 - CX, 45 + h / 2 * Math.cos(t) - d / 2 * Math.sin(t), backFront + h / 2 * Math.sin(t) + d / 2 * Math.cos(t) - CZ);
+      root.add(c);
+    });
+    // 4 throw pillows (~50×50) leaning on the back cushions: navy behind at the outer ends, mustard in front of it
+    [[sx0 + 27, M.navy, 0, -0.18], [sx0 + 54, M.mustard, 6, -0.08], [sx1 - 54, M.mustard, 6, 0.08], [sx1 - 27, M.navy, 0, 0.18]].forEach(([x, mat, fwd, yaw], i) => {
+      const p = softMesh(48, 48, 3, [0.6, 0.6, 6], mat);              // thin edges, ~15 thick in the middle
+      p.rotation.order = "YXZ";
+      p.rotation.set(0.3, yaw, (i % 2 ? 0.04 : -0.04));
+      p.position.set(x - CX, 45 + 23, backFront - 10 - fwd - CZ);
+      root.add(p);
+    });
+  })();
   // built-in closet in the east alcove (73 × 153)
   box(476, 547, 485, 638, 0, 214, M.white);
   box(475.4, 476, 486, 637, 4, 212, M.white);
@@ -201,6 +251,8 @@
     harel:      { w: 240, d: 52.5, h: 213, type: "hinged", sections: [80, 40, 80], doorsPer: [2, 1, 2], drawers: 1, body: M.harelOak, front: M.harelOak, shelves: M.white, name: "הראל · גיל" },
     carp:       { w: 240, d: 60, h: 220, type: "hinged", sections: [120, 120], doorsPer: [2, 2], body: M.oakLight, front: M.oakLight, shelves: M.oakLight, name: "נגרות" },
   };
+  // Selected (user): the same PAX as Itay's layout, with light-oak framed clear-glass doors so the interior shows.
+  WARDS.paxglass = Object.assign({}, WARDS.storklinta, { glassDoors: true, name: "IKEA PAX · דלתות זכוכית" });
   const WZ0 = 398, WZ1 = 638, WX = 20;
   const wardrobe = new THREE.Group(); root.add(wardrobe);
 
@@ -301,8 +353,16 @@
           const short = o.drawers && si === 1;
           const y0 = short ? 64 : 3, y1 = h - 3;
           const s = hingeLow ? 1 : -1;
-          lbox(1.8, y1 - y0, w - 0.4, 0, (y0 + y1) / 2, s * (w / 2), o.front, pivot);
-          if (key !== "storklinta") lbox(1.2, key === "harel" ? 30 : 22, 1.4, 1.6, 100, s * (w - 4), M.black, pivot);
+          if (o.glassDoors) {
+            // ~5 cm light-oak stiles and rails around a clear glass pane
+            const f = 5, dw = w - 0.4, zc = s * (w / 2), hh = y1 - y0, yc = (y0 + y1) / 2;
+            lbox(1.8, hh, f, 0, yc, s * (0.2 + f / 2), o.front, pivot);
+            lbox(1.8, hh, f, 0, yc, s * (w - 0.2 - f / 2), o.front, pivot);
+            lbox(1.8, f, dw - 2 * f, 0, y1 - f / 2, zc, o.front, pivot);
+            lbox(1.8, f, dw - 2 * f, 0, y0 + f / 2, zc, o.front, pivot);
+            lbox(0.6, hh - 2 * f + 1, dw - 2 * f + 1, 0, yc, zc, M.cabinetGlass, pivot).castShadow = false;
+          } else lbox(1.8, y1 - y0, w - 0.4, 0, (y0 + y1) / 2, s * (w / 2), o.front, pivot);
+          if (o.layout !== "pax") lbox(1.2, key === "harel" ? 30 : 22, 1.4, 1.6, 100, s * (w - 4), M.black, pivot); // PAX: push-open, no handles
           doors.push({ obj: pivot, prop: "ry", closed: 0, open: s * Math.PI / 2 * 0.98, ward: true });
         }
         if (o.drawers && si === 1) {
@@ -320,5 +380,5 @@
     B.updateWardKv(key);
   }
 
-  Object.assign(B, { buildKitchen, buildWardrobe, WARDS, WX });
+  Object.assign(B, { buildKitchen, buildWardrobe, WARDS, WX, SOFA });
 })(window.B);
