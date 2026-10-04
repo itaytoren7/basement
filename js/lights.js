@@ -3,7 +3,7 @@
  * The warm lamps share one colour + brightness control; the two ceiling lights have their own colour, switch and brightness.
  * None of these lights cast shadows (keeps it fast). Intensities are three.js legacy units, like the daylight in core.js.
  * Exposes: B.LAMPS, B.CEILING_LIGHTS, B.WARM_RANGE, B.WARM_PRESETS, B.CEILING_PRESETS, B.warmKelvin(tone), B.warmTone(k),
- *          B.warmHex(tone), B.setWarmLights(s), B.setCeilingLights(s), B.setEvening(on)
+ *          B.warmHex(tone), B.setWarmLights(s), B.setCeilingLights(s), B.setEvening(on), B.setDaylight(hour), B.restoreDaylight()
  */
 (function (B) {
   "use strict";
@@ -142,5 +142,38 @@
     });
   }
 
-  Object.assign(B, { LAMPS, CEILING_LIGHTS, WARM_RANGE, WARM_PRESETS, CEILING_PRESETS, warmKelvin, warmTone, warmHex, setWarmLights, setCeilingLights, setEvening });
+  // Daylight by the clock (life mode): the sun rises in the east at ~06:00, is highest at noon, sets in the west
+  // at ~18:00. Low sun is warm with long shadows; at night only a faint blue sky light remains. Returns 0..1 daylight.
+  const dayBase = { sunPos: B.sun.position.clone(), sunColor: B.sun.color.clone(), hemiSky: daylight[0].color.clone(), hemiGround: daylight[0].groundColor.clone(), win: M.winGlass.emissive.clone() };
+  const cA = new THREE.Color(), cB = new THREE.Color();
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+  function setDaylight(hour) {
+    const el = Math.sin(Math.PI * (hour - 6) / 12);                // sun elevation factor: 1 at noon, < 0 at night
+    const day = clamp01(el * 2.2);                                 // full daylight by ~08:00, dusk from ~16:30
+    const warm = clamp01(1 - el * 2.5);                            // low sun = orange
+    const a = Math.PI * (hour - 6) / 12;                           // east → overhead → west
+    daylight.concat([M.winGlass]).forEach(o => {
+      const prop = o.isMaterial ? "emissiveIntensity" : "intensity";
+      if (o.userData.day === undefined) o.userData.day = o[prop];
+    });
+    B.sun.position.set(Math.cos(a) * 620, Math.max(60, Math.sin(a) * 700), 300);
+    B.sun.intensity = B.sun.userData.day * day;
+    B.sun.color.copy(cA.set("#fff6ea").lerp(cB.set("#ff9a55"), warm * 0.9));
+    const hemi = daylight[0];
+    hemi.intensity = hemi.userData.day * (0.1 + 0.9 * day);
+    hemi.color.copy(cA.set("#ffffff").lerp(cB.set("#3a4a6e"), 1 - day));
+    hemi.groundColor.copy(cA.copy(dayBase.hemiGround).lerp(cB.set("#1f1d24"), 1 - day));
+    daylight[1].intensity = daylight[1].userData.day * (0.2 + 0.8 * day);
+    daylight[3].intensity = daylight[3].userData.day * (0.15 + 0.85 * day);
+    M.winGlass.emissiveIntensity = M.winGlass.userData.day * (0.15 + 0.85 * day);
+    M.winGlass.emissive.copy(cA.copy(dayBase.win).lerp(cB.set("#2b3a5c"), 1 - day));
+    return day;
+  }
+  function restoreDaylight() {
+    B.sun.position.copy(dayBase.sunPos); B.sun.color.copy(dayBase.sunColor);
+    daylight[0].color.copy(dayBase.hemiSky); daylight[0].groundColor.copy(dayBase.hemiGround); M.winGlass.emissive.copy(dayBase.win);
+    setEvening(false);
+  }
+
+  Object.assign(B, { LAMPS, CEILING_LIGHTS, WARM_RANGE, WARM_PRESETS, CEILING_PRESETS, warmKelvin, warmTone, warmHex, setWarmLights, setCeilingLights, setEvening, setDaylight, restoreDaylight });
 })(window.B);

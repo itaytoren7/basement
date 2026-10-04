@@ -1,6 +1,6 @@
 /* furniture.js — furniture from the designer's layout, the kitchenette and the wardrobe options.
  * Positions are plan coordinates in cm, read off the drawing.
- * Exposes: B.buildKitchen(L), B.buildWardrobe(key), B.WARDS, B.WX, B.SOFA
+ * Exposes: B.buildKitchen(L), B.buildWardrobe(key), B.WARDS, B.WX, B.SOFA, B.deskScreen
  */
 (function (B) {
   "use strict";
@@ -380,5 +380,5 @@
     B.updateWardKv(key);
   }
 
-  Object.assign(B, { buildKitchen, buildWardrobe, WARDS, WX, SOFA });
+  Object.assign(B, { buildKitchen, buildWardrobe, WARDS, WX, SOFA, deskScreen: screenMat });
 })(window.B);

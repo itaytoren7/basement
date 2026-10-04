@@ -1,7 +1,7 @@
 /* core.js — shared namespace, renderer, scene, camera, lights and geometry helpers.
  *
  * Every script adds to one global object, window.B, and later scripts read from it.
- * Load order (see index.html): core → materials → room → furniture → bathroom → lights → tv → ui → main.
+ * Load order (see index.html): core → materials → room → furniture → bathroom → lights → tv → ui → people → nav → sim → simui → main.
  *
  * Plan coordinates (used everywhere): centimetres, measured from the designer's drawing.
  *   origin = outer top-left corner of the building outline on the drawing
@@ -59,6 +59,7 @@ window.B = window.B || {};
   /* ---------- geometry helpers ---------- */
   const root = new THREE.Group(); scene.add(root);
   const wallMeshes = []; // every wall mesh; the TV "click on a wall" mode raycasts against these
+  const floorMeshes = []; // every floor surface; life mode raycasts against these to walk somewhere
 
   // Axis-aligned box from plan coordinates: x0..x1, z0..z1, y0..y1.
   function box(x0, x1, z0, z1, y0, y1, mat, parent, opt) {
@@ -93,10 +94,11 @@ window.B = window.B || {};
     m.rotation.x = -Math.PI / 2;
     m.position.set((x0 + x1) / 2 - CX, y, (z0 + z1) / 2 - CZ);
     m.receiveShadow = true;
+    m.userData.floor = true; floorMeshes.push(m);
     root.add(m); return m;
   }
   // Plan point → scene vector.
   const V = (x, y, z) => new THREE.Vector3(x - CX, y, z - CZ);
 
-  Object.assign(B, { canvas, stage, renderer, scene, camera, controls, sun, daylight, root, wallMeshes, box, lbox, cyl, floorRect, V });
+  Object.assign(B, { canvas, stage, renderer, scene, camera, controls, sun, daylight, root, wallMeshes, floorMeshes, box, lbox, cyl, floorRect, V });
 })(window.B);

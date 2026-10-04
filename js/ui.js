@@ -1,6 +1,6 @@
 /* ui.js — panel readouts, labels, camera views, door animation, theme sync and control wiring.
  * Exposes: B.updateWardKv, B.updateKitchenNote, B.updateRainNote, B.updateSofaKv, B.renderShopping, B.syncLighting, B.syncFabrics,
- *          B.setDoorProp, B.stepDoors, B.updateLabels, B.goView, B.stepCamera
+ *          B.setDoorProp, B.stepDoors, B.updateLabels, B.goView, B.stepCamera, B.isCameraMoving, B.radios
  */
 (function (B) {
   "use strict";
@@ -83,7 +83,7 @@
   let labelsOn = true;
   const tmpV = new THREE.Vector3();
   function updateLabels() {
-    const show = labelsOn && !isFirstPerson;
+    const show = labelsOn && !isFirstPerson && !(B.sim && B.sim.active);   // life mode has its own labels (the residents)
     labelWrap.hidden = !show;
     if (!show) return;
     const w = stage.clientWidth, h = stage.clientHeight;
@@ -107,6 +107,7 @@
     arm: { pos: V(158, 106, 340), look: V(464, 108, 270), fp: true },
     kitchen: { pos: V(260, 190, 590), look: V(220, 80, 560), fp: true },
     bath: { pos: V(448, 168, 655), look: V(220, 120, 732), fp: true },
+    life: { pos: V(616, 720, 960), look: V(286, 0, 400), fp: false },   // life mode: angled from the south-east, ~48° down
   };
   let isFirstPerson = false;
   let tween = null;
@@ -151,7 +152,7 @@
   let doorsOpen = false;
   function stepDoors() {
     doors.forEach(d => {
-      const target = doorsOpen ? d.open : d.closed;
+      const target = (d.sim !== undefined ? d.sim : doorsOpen) ? d.open : d.closed;   // d.sim: set by life mode
       if (d.cur === undefined) d.cur = d.prop === "ry" ? d.obj.rotation.y : d.obj.position.z;
       if (Math.abs(target - d.cur) < 1e-3) return;
       setDoorProp(d, reduceMotion ? target : d.cur + (target - d.cur) * 0.14);
@@ -242,7 +243,14 @@
   radios("warmPreset", k => { $("#warmTone").value = Math.round(B.warmTone(+k) * 100); syncLighting(); });
   radios("ceilPreset", () => syncLighting());
 
+  // The lighting inputs as data: { warmOn, tone 0..1, warmLevel 0..1, ceilOn, ceilLevel 0..1, ceilColor, evening }
+  function lightingState() {
+    const ceil = B.CEILING_PRESETS.find(p => p.k === +document.querySelector("input[name=ceilPreset]:checked").value);
+    return { warmOn: $("#warmOn").checked, tone: +$("#warmTone").value / 100, warmLevel: +$("#warmLevel").value / 100,
+      ceilOn: $("#ceilOn").checked, ceilLevel: +$("#ceilLevel").value / 100, ceilColor: ceil.color, evening: $("#optEvening").checked };
+  }
   // Lighting: reads every lighting control and applies them (lights.js). Also called once at start (main.js).
+  // In life mode the clock decides what is on (sim.js); the colours and levels still come from these inputs.
   function syncLighting() {
     const tone = +$("#warmTone").value, wl = +$("#warmLevel").value, cl = +$("#ceilLevel").value;
     $("#warmToneOut").textContent = "≈" + B.warmKelvin(tone / 100) + "K";
@@ -250,10 +258,11 @@
     $("#ceilLevelOut").textContent = cl + "%";
     // the lamp preset that matches the slider stays marked; fine-tuning in between unmarks them all
     document.querySelectorAll("input[name=warmPreset]").forEach(r => { r.checked = Math.round(B.warmTone(+r.value) * 100) === tone; });
-    const ceil = B.CEILING_PRESETS.find(p => p.k === +document.querySelector("input[name=ceilPreset]:checked").value);
-    B.setWarmLights({ on: $("#warmOn").checked, tone: tone / 100, level: wl / 100 });
-    B.setCeilingLights({ on: $("#ceilOn").checked, level: cl / 100, color: ceil.color });
-    B.setEvening($("#optEvening").checked);
+    if (B.sim && B.sim.active) { B.sim.applyClock(); return; }
+    const s = lightingState();
+    B.setWarmLights({ on: s.warmOn, tone: s.tone, level: s.warmLevel });
+    B.setCeilingLights({ on: s.ceilOn, level: s.ceilLevel, color: s.ceilColor });
+    B.setEvening(s.evening);
   }
   ["#optEvening", "#warmOn", "#warmTone", "#warmLevel", "#ceilOn", "#ceilLevel"].forEach(id => $(id).addEventListener("input", syncLighting));
   $("#optNew").addEventListener("change", e => {
@@ -283,6 +292,7 @@
   }
   canvas.addEventListener("pointerdown", e => {
     downAt = [e.clientX, e.clientY];
+    if (B.sim && B.sim.active) return;                 // life mode: no TV dragging; clicks are handled on pointerup
     pointerRay(e.clientX, e.clientY);
     const tvHit = ray.intersectObjects(B.tv.children, true)[0];
     if (tvHit) {
@@ -312,6 +322,10 @@
     if (tvDrag) {
       finishTvDrag(); downAt = null; return;
     }
+    if (B.sim && B.sim.active) {                       // life mode: a tap (not a drag) selects a resident or sends it walking
+      if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) <= 6) B.sim.click(e.clientX, e.clientY);
+      downAt = null; return;
+    }
     if (!placing || !downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) { downAt = null; return; }
     const picked = pickWall(e.clientX, e.clientY);
     if (!picked) { downAt = null; return; }
@@ -321,5 +335,6 @@
     downAt = null;
   });
 
-  Object.assign(B, { updateWardKv, updateKitchenNote, updateRainNote, updateSofaKv, renderShopping, syncLighting, syncFabrics, setDoorProp, stepDoors, updateLabels, goView, stepCamera });
+  const isCameraMoving = () => !!tween;
+  Object.assign(B, { updateWardKv, updateKitchenNote, updateRainNote, updateSofaKv, renderShopping, syncLighting, lightingState, syncFabrics, setDoorProp, stepDoors, updateLabels, goView, stepCamera, isCameraMoving, radios });
 })(window.B);

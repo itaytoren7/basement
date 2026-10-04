@@ -1,6 +1,6 @@
 # The BASEment — 3D model of the basement unit
 
-Interactive 3D model of Itay's basement renovation, built from the interior designer's plan so the family can check sizes, layout and finishes before building. It answers the open points in the designer's letter (wardrobe, kitchenette, bathroom vitrine, rain-shower height, TV position), records the family's final furniture choices with a shopping list, and lets you try the lighting (lamps, ceiling lights, evening).
+Interactive 3D model of Itay's basement renovation, built from the interior designer's plan so the family can check sizes, layout and finishes before building. It answers the open points in the designer's letter (wardrobe, kitchenette, bathroom vitrine, rain-shower height, TV position), records the family's final furniture choices with a shopping list, lets you try the lighting (lamps, ceiling lights, evening), and has a **life mode**: Itay and Mia living in the unit (walking, sleeping, showering, working, TV, coffee, ...) with a clock that drives the daylight and the lamps. It is a visualisation, not a game: no needs, scores or queues.
 
 The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes in English.
 
@@ -9,14 +9,15 @@ The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes 
 - Open `index.html` in a browser (double-click works: the page uses classic scripts, no ES modules, no `fetch`).
 - Or serve the folder: `python3 -m http.server 8000` → http://localhost:8000
 - Needs internet: three.js r147 and the fonts load from CDNs (jsDelivr, Google Fonts).
-- Useful in the browser console: `__basement.goView("bath")` (views: over, plan, entry, sofa, bed, arm, kitchen, bath).
+- Useful in the browser console: `__basement.goView("bath")` (views: over, plan, entry, sofa, bed, arm, kitchen, bath, life), `__basement.nav.showGrid(true)` (the walkable grid), `__basement.sim.startActivity("shower", __basement.sim.people.mia)`.
 
 ## Stack and rules
 
 - Plain HTML + CSS + JS. No build step, no npm, no framework.
 - three.js **r147**, classic builds (`build/three.min.js` + `examples/js/controls/OrbitControls.js`), pinned on jsDelivr. r148+ dropped `examples/js`; upgrading means switching to ES modules and then the page no longer works from `file://` — only do that together with serving over http.
 - Keep it working from `file://`: no `type="module"`, no `fetch`, no imports.
-- All scripts share one global object, `window.B`. Each file is an IIFE that reads what earlier files put on `B` and adds its own exports at the bottom. **Load order matters** (see `index.html`).
+- All scripts share one global object, `window.B`. Each file is an IIFE that reads what earlier files put on `B` and adds its own exports at the bottom. **Load order matters** (see `index.html`): core → materials → room → furniture → bathroom → lights → tv → ui → people → nav → sim → simui → main.
+- Life mode is original work: no logos, icons, sounds or names from any game. The selection marker is a thin ring on the floor plus the highlighted name label.
 - Every colour in the page UI is a CSS token in `:root` with dark-mode overrides. Don't hardcode colours in components. Exception: colour-picker swatches show a data colour (fabric or light) through the `--sw` custom property, set by `ui.js` from the data lists.
 - No environment map in the scene, so keep material `metalness` ≤ ~0.45 or metals render black.
 - UI strings are Hebrew. Numbers use the `num` class (tabular digits).
@@ -34,8 +35,12 @@ The UI is in **Hebrew, right-to-left**. Talk to Itay in Hebrew unless he writes 
 | `js/bathroom.js` | Shower (raised 15), bronze fixtures, vanity, mirrored medicine cabinet, standard toilet, wall tiles (`cladPanel`), `buildRain(h)`, `buildPerson(height)`, niche shelves |
 | `js/lights.js` | Lamps and ceiling lights from the `LAMPS` / `CEILING_LIGHTS` lists, colour options `WARM_PRESETS` / `CEILING_PRESETS`, `setWarmLights`, `setCeilingLights`, `setEvening` |
 | `js/tv.js` | TV sizes, presets (`north` = under the AC, `stairs` = designer's idea), placement, viewing readout, AC gap check |
-| `js/ui.js` | Panel readouts (wardrobe, sofa gaps, `SHOPPING` list, rain note), colour pickers built from data (`UPHOLSTERY` + `syncFabrics`, light presets), labels, camera `VIEWS`, door animation, theme sync, all control wiring incl. `syncLighting`, draggable TV and click-a-wall placement |
-| `js/main.js` | Initial state (must match the `checked` inputs in `index.html`; lighting is read from the inputs by `syncLighting`), resize, render loop |
+| `js/ui.js` | Panel readouts (wardrobe, sofa gaps, `SHOPPING` list, rain note), colour pickers built from data (`UPHOLSTERY` + `syncFabrics`, light presets), labels, camera `VIEWS` (incl. `life`), door animation (`d.sim` overrides the toggle in life mode), theme sync, all control wiring incl. `syncLighting` / `lightingState`, draggable TV and click-a-wall placement; in life mode taps on the stage go to `B.sim.click` |
+| `js/people.js` | The two residents: `PEOPLE` (looks, outfits, bed side, start position), `makePerson(key)` builds the body (joint hierarchy of capsules/spheres, real proportions), the face, hair, beard, glasses, tattoo, props (cup, book, phone), the procedural animation (idle, walk) and the `POSE` table (sit, lie, type, drink, read, toilet, phone, shower, wash, press, hold, dress, hug, talk) |
+| `js/nav.js` | The walkable grid (10 cm cells): floors from room.js, walls from `WALLS` (automatic), furniture from `OBJECTS` (plan rects + Hebrew names); A* with diagonals, path smoothing, `findPath`, `nearestFree`, `elevation` (raised shower), `showGrid` |
+| `js/sim.js` | Life mode: selection, walking and giving way, automatic doors, the `ACTIVITIES` table and its step runner, effects (shower water + steam, TV picture + light, desk screens, wardrobe doors), the clock (`setHour` → daylight + lamps), the life camera (follow, wall cutaway) |
+| `js/simui.js` | The life-mode panel (portraits drawn from `PEOPLE`, status line, activity / outfit / together chips) and the HUD over the stage (hour slider, walls switch, follow) |
+| `js/main.js` | Initial state (must match the `checked` inputs in `index.html`; lighting is read from the inputs by `syncLighting`), resize, render loop (calls `B.sim.step`) |
 | `תכנית משפחת תורן-יחידת דיור איתי תורן- לעיון בלבד-1.pdf` | The updated designer's plan (sheet TBN01, 24/9/26, scale 1:50). The source for every dimension. Git-ignored — do not publish it. |
 
 ## Coordinate system (important)
@@ -109,6 +114,27 @@ Still open (options in the panel):
 
 Assumptions (not in the plan): bedroom window height, door heights (≈205), bathroom floor tiles, finishes and colours of the furniture not listed above.
 
+## Life mode (מצב חיים)
+
+The mode switch is at the top of the panel; the page opens in design mode. In life mode the design sections hide (class `designOnly`) and the life section shows (`lifeOnly`); every design option keeps working when you switch back.
+
+**Residents.** `PEOPLE` in `people.js` holds each look: `height`, `build` (scales widths), `skin`, `hair` (`style` short / curly / long, `color`, `tips`, `length`), `eyes`, `beard` (colour or null; adds a moustache), `glasses`, `necklace`, `tattoo` (a line drawing on the left upper arm), `outfits` (home / out / pajama / towel: `top`, `bottom`, `sleeves`, `legs`, `shoes`), `bedSide`, `start`. Itay 168 cm (curly dark hair, round glasses, full beard, black t-shirt, chain), Mia 165 cm (very long sun-lightened wavy hair, white top, flower tattoo). Matched by eye to the photos Itay sent; the photos stay out of the repo. Each body is a group hierarchy: `hips → torso → head`, `torso → uArm → lArm (+ hand)`, `hips → uLeg → lLeg → foot`; `p.animate()` eases every joint towards targets set per frame (idle, walk cycle, or a `POSE`). Joint convention: `rotation.x` negative = the limb swings forward; positive on a lower leg = the knee bends; forward is local +z, so `yaw = atan2(dx, dz)`.
+
+**Walking.** `nav.js` builds the grid: a cell is walkable when its centre is inside a floor rect (`MAIN_FLOORS`, `BATH_FLOORS`, the bathroom doorway gap) and at least 14 cm from a wall (`WALLS` with y0 < 100) and 11 cm from any `OBJECTS` rect. The wardrobe and kitchenette rects are functions of the panel options (`buildWardrobe` / `buildKitchen` are wrapped to rebuild the grid). **When furniture moves: edit its rect in `OBJECTS`** (and the matching activity spot in `sim.js`). `sim.goTo(p, x, z, {yaw})` plans with A* (8 directions, no corner cutting) and smooths the path; a resident who meets the other one in the way stops, and after a moment plans around them (the one later in `order` yields first). Walking speed 95 cm/s with ease-in/out; the walk cycle (stride ≈ 0.38 × height) follows the speed. Doors: `DOOR_ZONES` in `sim.js`: the entry and bathroom doors open while someone *walks* inside the zone in front of them (`d.sim`), and close otherwise; wardrobe doors open while dressing. The shower tray is a raised zone (`RAISED` in nav.js): the body steps up 15 cm.
+
+**Activities.** `ACTIVITIES` in `sim.js`, one entry per activity: `inf` (the panel label, infinitive), `now` (present tense `[m, f]`, or one form for "both"), `both` (shared by the two), `hidden` (not in the list), `steps(p)` → a list of steps, `end(p)` cleanup. Steps:
+- `{ go: [x, z, yaw] }` (or a function returning it) — walk there and face `yaw`. If the other resident stands on the spot, wait until it is free.
+- `{ pose: { name, seat | y, ...opts }, at: [x, z, yaw], secs, now, prop, start(p) }` — hold a `POSE`; `at` slides the body into the seat / onto the bed over 1.2 s (walking onto furniture is not possible); `secs` = duration in real seconds, omitted = until something else is chosen; `prop` shows the cup / book / phone; `now` overrides the status text for this step.
+- `{ fn(p) }` — a side effect: `setTv`, `setDeskScreen`, `setShower`, `setWardrobe`, `p.setOutfit`, `p.carry`, `p.away`.
+
+Spots used today (plan cm): bed — approach north `(160, 48)` → lie at `(117, 115)` (Itay) / south `(160, 252)` → `(117, 185)` (Mia), facing west, mattress 54; sofa seats x 231 / 321, approach z 405, sit at z 468 facing north, seat 45; armchairs sit at `(162, 340)` facing east / `(412, 340)` facing west, seat 47, approach x 225 / 345; desk chair sit at `(368, 170)` facing east, seat 47, approach x 340; toilet sit at `(422, 737)` facing north, seat 42, approach `(422, 688)`; basin `(312, 714)` facing south; shower `(205, 721)` facing west; coffee machine `(195, 555)` facing south; wardrobe: x = wardrobe front + 32, z 513, facing west; entry `(468, 375)`; talk `(254, 405)` / `(316, 405)`; hug `(266, 405)` / `(304, 405)`.
+
+**To add an activity:** add a `POSE` in `people.js` if a new body position is needed; add the entry to `ACTIVITIES` (steps, `now` forms, `end`); if an object should start it on click, map it in `OBJECT_ACTS` (or add an `objBox`); make sure the spot is walkable (`showGrid(true)`). The panel chips are generated from the table. `sim.startActivity(key, person)` starts it; picking an activity always ends the previous one (`stopActivity` runs its `end`, restores the outfit after a shower, brings someone back from outside).
+
+**Clock and light.** The hour slider on the HUD (`#hourRange`, 15-minute steps, default 07:00) calls `sim.setHour(h)` → `B.setDaylight(h)` (lights.js: sun east→west, elevation and warmth by hour, hemisphere/ambient/fill and the window glow fade to a faint blue at night) and the lamps: warm lamps on when daylight < 50 %, ceiling lights on only in the evening (15:00–23:30 while dark); colours and levels come from the design panel's lighting inputs (`lightingState`). Leaving life mode calls `restoreDaylight()` and `syncLighting()`, so the manual controls apply again. Nothing advances by itself: the hour is whatever the slider says.
+
+**Camera.** `VIEWS.life` (angled from the south-east). HUD walls switch: full / cut (parts facing the camera drop to 40 cm) / down (all to 40). What gets cut is the `wallParts` list (room.js `wall()`, `attachBox`, `attachGroup`, `attach`; bathroom.js `cladPanel`): `scale` = centred box or plane with y0/y1, `group` = origin on the floor with height h (door pivots, casing), `hide` = windows, frames and transoms above 40 (`userData.off` marks what the bath-door option keeps hidden). "Follow" keeps the orbit target on the selected resident.
+
 ## Shopping list
 
 Shown in the panel ("רשימת קניות"); the data is `SHOPPING` in `ui.js`, and the total adds up automatically.
@@ -155,6 +181,7 @@ Shown in the panel ("רשימת קניות"); the data is `SHOPPING` in `ui.js`,
 - New fixed object: add `box(...)` calls in the right file, in plan coordinates. Check the drawing for position.
 - New option in the panel: add the radio/checkbox to `index.html` (give it an `id`), wire it in `ui.js` (`radios(name, fn)`), set its initial state in `main.js`.
 - New or moved lamp: edit `LAMPS` in `lights.js`; new light colour option: `WARM_PRESETS` / `CEILING_PRESETS`. New upholstery colour: add to `FABRICS` in `materials.js` (both pickers update). New shopping item: add to `SHOPPING` in `ui.js`.
+- Moved furniture: update its rect in `OBJECTS` (`nav.js`) and the spot in `ACTIVITIES` (`sim.js`). New activity or a change to a resident's look: see "Life mode" above.
 - New camera view: add to `VIEWS` in `ui.js` and a button with `data-view` in `index.html`.
 - Change a finish: edit the material in `materials.js`.
 
@@ -162,6 +189,7 @@ Shown in the panel ("רשימת קניות"); the data is `SHOPPING` in `ui.js`,
 
 - Open the page, open the browser console: there must be no errors.
 - Click through every view button and every option; readouts in the panel must update.
+- Life mode: switch to it, click the floor, every activity chip for each resident, the hour slider at a few hours, the walls switch, then back to design mode (walls, labels, lighting restored).
 - Check a phone width (≈400px) — the stage sits above the panel and nothing scrolls sideways.
 - Compare positions against the PDF when you move or add anything.
 

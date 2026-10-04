@@ -1,14 +1,15 @@
 /* bathroom.js — shower, fixtures, vanity, standard toilet, wall tiles, rain head, person, niche shelves.
  * Bathroom interior: x 164–463, z 648–778 (299 × 130). Shower x 164–244, raised 15 cm.
- * Exposes: B.buildRain(h), B.buildPerson(height), B.cladPanel
+ * Exposes: B.buildRain(h), B.buildPerson(height), B.cladPanel, B.person
  */
 (function (B) {
   "use strict";
   if (B.failed) return;
-  const { H, CX, CZ, M, std, root, box, lbox, cyl, doors } = B;
+  const { H, CX, CZ, M, std, root, box, lbox, cyl, doors, floorMeshes, wallParts } = B;
 
   /* ---------- shower ---------- */
-  box(164, 244, 648, 778, 0, 15, M.shower);                          // whole shower raised 15
+  const tray = box(164, 244, 648, 778, 0, 15, M.shower);             // whole shower raised 15
+  tray.userData.floor = true; floorMeshes.push(tray);                // residents can walk (and step up) onto it
   box(214, 222, 658, 768, 15, 15.3, M.steel, root, { noCast: true }); // linear drain
   const shGlass = box(242.5, 244.5, 688, 778, 15, 205, M.showerGlass, root, { noCast: true });
   shGlass.castShadow = false;                                        // glass lines up with where the window sashes meet
@@ -91,9 +92,10 @@
     for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * len / 60, uv.getY(i) * hgt / 60 + y0 / 60);
     const m = new THREE.Mesh(g, M.clad);
     m.rotation.y = rotY; m.receiveShadow = true;
-    const mid = (a0 + a1) / 2, ym = (y0 + y1) / 2;
-    if (Math.abs(Math.sin(rotY)) > 0.5) m.position.set(at - CX, ym, mid - CZ);
+    const mid = (a0 + a1) / 2, ym = (y0 + y1) / 2, alongZ = Math.abs(Math.sin(rotY)) > 0.5;
+    if (alongZ) m.position.set(at - CX, ym, mid - CZ);
     else m.position.set(mid - CX, ym, at - CZ);
+    wallParts.push({ obj: m, kind: "scale", y0, y1, cx: alongZ ? at : mid, cz: alongZ ? mid : at }); // cut with the wall behind it
     (parent || root).add(m); return m;
   }
   const cladding = new THREE.Group(); root.add(cladding);
@@ -134,5 +136,5 @@
   /* ---------- niche shelves, facing the 50 cm opening ---------- */
   [30, 70, 110, 150, 190].forEach(y => box(484, 546, 649, 719, y, y + 2, M.white));
 
-  Object.assign(B, { buildRain, buildPerson, cladPanel });
+  Object.assign(B, { buildRain, buildPerson, cladPanel, person });
 })(window.B);

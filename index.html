@@ -20,9 +20,33 @@
         <span>תקרה <b class="num">220</b></span>
         <span>חדר רחצה <b class="num">299×130</b></span>
       </div>
+      <div class="seg modeSeg" role="radiogroup" aria-label="מצב">
+        <input type="radio" name="mode" id="mode-design" value="design" checked><label for="mode-design">מצב תכנון</label>
+        <input type="radio" name="mode" id="mode-life" value="life"><label for="mode-life">מצב חיים</label>
+      </div>
     </div>
 
-    <section class="block" aria-labelledby="h-tv">
+    <section class="block lifeOnly" aria-labelledby="h-life">
+      <span class="eyebrow">איך נראים החיים ביחידה</span>
+      <h2 id="h-life">מי בבית</h2>
+      <div class="portraits" id="portraits" role="group" aria-label="בחירת דמות"></div>
+      <p class="callout" id="lifeStatus"></p>
+      <div class="field">
+        <span class="lbl" id="lbl-act">מה <span id="actWho"></span> עושה</span>
+        <div class="seg" id="actList" role="radiogroup" aria-labelledby="lbl-act"></div>
+      </div>
+      <div class="field">
+        <span class="lbl" id="lbl-wear">לבוש (מחליפים בארון)</span>
+        <div class="seg" id="wearList" role="radiogroup" aria-labelledby="lbl-wear"></div>
+      </div>
+      <div class="field">
+        <span class="lbl" id="lbl-both">שניהם יחד</span>
+        <div class="seg chipBtns" id="bothList" role="group" aria-labelledby="lbl-both"></div>
+      </div>
+      <p class="note">אפשר גם ללחוץ על חפץ במודל (מיטה, ספה, טלוויזיה, שולחן, מטבחון, מקלחון, אסלה, כיור, כורסה, ארון, דלת הכניסה) והדמות הנבחרת תלך לעשות את מה שעושים שם. לחיצה על הרצפה: סתם ללכת לשם. למעלה: השעה, חיתוך הקירות ומעקב המצלמה.</p>
+    </section>
+
+    <section class="block designOnly" aria-labelledby="h-tv">
       <span class="eyebrow">סעיף 7 · מיקום הטלוויזיה</span>
       <h2 id="h-tv">טלוויזיה</h2>
       <div class="field">
@@ -65,7 +89,7 @@
       <p class="note">סיבוב ראש: כמה מעלות צריך להסתובב מהכיוון שהמושב פונה אליו. עד 25° נוח, מעל 50° צריך לשבת בזווית.</p>
     </section>
 
-    <section class="block" aria-labelledby="h-sofa">
+    <section class="block designOnly" aria-labelledby="h-sofa">
       <span class="eyebrow">IKEA KIVIK · צבעי ריפוד</span>
       <h2 id="h-sofa">ספה וכורסאות</h2>
       <p class="note">ספה תלת־מושבית <span class="num">228×95×83</span>, גובה מושב <span class="num">45</span>, פונה צפונה לטלוויזיה, עם שתי כריות צהוב חרדל ושתיים כחול כהה.</p>
@@ -83,7 +107,7 @@
       <p class="note">הצבעים כאן להשוואה, כל אחד בנפרד. ההחלטה (וגם רשימת הקניות): Tibbleby בז׳/אפור לספה, פחם כהה לכורסאות.</p>
     </section>
 
-    <section class="block" aria-labelledby="h-ward">
+    <section class="block designOnly" aria-labelledby="h-ward">
       <span class="eyebrow">סעיף 2 · אפשרויות הארון</span>
       <h2 id="h-ward">ארון בגדים</h2>
       <div class="opts" role="radiogroup" aria-label="דגם ארון">
@@ -96,7 +120,7 @@
       <dl class="kv" id="wardKv"></dl>
     </section>
 
-    <section class="block" aria-labelledby="h-kit">
+    <section class="block designOnly" aria-labelledby="h-kit">
       <span class="eyebrow">סעיף 3 · קטן יותר</span>
       <h2 id="h-kit">מטבחון</h2>
       <div class="seg" role="radiogroup" aria-label="אורך מטבחון">
@@ -106,7 +130,7 @@
       <p class="note" id="kitNote"></p>
     </section>
 
-    <section class="block" aria-labelledby="h-bath">
+    <section class="block designOnly" aria-labelledby="h-bath">
       <span class="eyebrow">סעיפים 1, 4, 5, 6</span>
       <h2 id="h-bath">חדר רחצה</h2>
       <p class="note">חיפוי הקירות: אריחי 15×15 בתכלת־טורקיז, עד התקרה. הברזים במקלחון: ברונזה.</p>
@@ -146,7 +170,7 @@
       <p class="callout" id="rainNote"></p>
     </section>
 
-    <section class="block" aria-labelledby="h-shop">
+    <section class="block designOnly" aria-labelledby="h-shop">
       <span class="eyebrow">מה קונים ב־IKEA</span>
       <h2 id="h-shop">רשימת קניות</h2>
       <table class="readout shop" aria-label="רשימת קניות">
@@ -157,7 +181,7 @@
       <p class="note" id="shopNote"></p>
     </section>
 
-    <section class="block" aria-labelledby="h-light">
+    <section class="block designOnly" aria-labelledby="h-light">
       <span class="eyebrow">מנורות ותאורת תקרה</span>
       <h2 id="h-light">תאורה</h2>
       <div class="tgl"><input type="checkbox" id="optEvening"><label for="optEvening">ערב: אור היום יורד ל־<span class="num">15%</span></label></div>
@@ -192,7 +216,7 @@
       </div>
     </section>
 
-    <section class="block" aria-labelledby="h-disp">
+    <section class="block designOnly" aria-labelledby="h-disp">
       <h2 id="h-disp">תצוגה</h2>
       <div class="toggles">
         <div class="tgl"><input type="checkbox" id="optDoors"><label for="optDoors">דלתות פתוחות</label></div>
@@ -201,7 +225,7 @@
       </div>
     </section>
 
-    <p class="foot">המודל להמחשה. קירות, פתחים וריהוט נמדדו מהשרטוט. גובה החלון בחדר, גובה הדלתות, ריצוף וגוונים משוערים. מחירי הארונות מאתרי החנויות בספטמבר 2026.</p>
+    <p class="foot designOnly">המודל להמחשה. קירות, פתחים וריהוט נמדדו מהשרטוט. גובה החלון בחדר, גובה הדלתות, ריצוף וגוונים משוערים. מחירי הארונות מאתרי החנויות בספטמבר 2026.</p>
   </aside>
 
   <main id="stage">
@@ -217,6 +241,17 @@
       <button type="button" data-view="kitchen" aria-pressed="false">מטבחון וארון</button>
       <button type="button" data-view="bath" aria-pressed="false">חדר הרחצה</button>
     </div>
+    <div id="hud" class="lifeOnly" role="group" aria-label="שעה ומצלמה במצב חיים">
+      <label class="hudLbl" for="hourRange">שעה</label>
+      <input type="range" id="hourRange" min="0" max="1439" step="15" value="420" aria-label="שעה ביום">
+      <output for="hourRange" id="hourOut" class="num hudOut">07:00</output>
+      <span class="hudLbl">קירות</span>
+      <button type="button" data-walls="full" aria-pressed="false">מלאים</button>
+      <button type="button" data-walls="cut" aria-pressed="true">חתך</button>
+      <button type="button" data-walls="down" aria-pressed="false">מורדים</button>
+      <button type="button" id="hudFollow" aria-pressed="false">עקוב אחרי הדמות</button>
+    </div>
+    <div id="plabels" aria-hidden="true" hidden></div>
     <div id="hint">גררו לסיבוב, גלגלת או צביטה לזום, שתי אצבעות או קליק ימני להזזה.</div>
     <div id="loading">טוען מודל…</div>
   </main>
@@ -234,6 +269,10 @@
 <script src="js/lights.js"></script>
 <script src="js/tv.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/people.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/simui.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

@@ -29,8 +29,11 @@
   B.goView("over", true);
   document.getElementById("loading").hidden = true;
 
+  let last = 0;
   function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000) || 0; last = now;   // seconds since the last frame, capped
     B.stepCamera(now);
+    B.sim.step(now, dt);
     B.stepDoors();
     controls.update();
     renderer.render(scene, camera);
