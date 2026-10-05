@@ -20,7 +20,7 @@
     [483, 547, 648, 720], // shelf niche
   ];
   MAIN_FLOORS.forEach(r => floorRect(r[0], r[1], r[2], r[3], 0, M.floor, [160, 640], true)); // parquet: one texture repeat = 160 × 640 cm
-  BATH_FLOORS.forEach(r => floorRect(r[0], r[1], r[2], r[3], 0, M.bathFloor, 30));
+  BATH_FLOORS.forEach(r => floorRect(r[0], r[1], r[2], r[3], 0, M.bathFloor, [120, 120], true)); // 60×60 stone tiles, continuous across the pieces
 
   // ceiling is shown only in first-person views (ui.js → applyMode)
   const ceiling = new THREE.Group(); root.add(ceiling);
@@ -70,6 +70,7 @@
     [547, 572, 485, 740, 0, H, 0],     // alcove + niche east wall
     [463, 572, 720, 740, 0, H, 0],     // niche south wall
     [463, 483, 698, 778, 0, H, 0],     // bathroom east wall (opening 50 cm to the niche)
+    [363, 463, 758, 778, 0, H, 1],     // concealed-cistern wall (JOMO) behind the wall-hung toilet, to the ceiling
     [383, 547, 638, 648, 0, H, 1],     // solid new wall between room and bathroom
     [164, 302, 638, 648, 0, 160, 1],   // low wall up to 160 behind the kitchenette (vitrine glass above)
     [302, 307, 638, 648, 0, H, 1],     // post between the low wall and the bathroom glass door

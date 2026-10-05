@@ -7,3 +7,6 @@
 # editor
 .vscode/*
 !.vscode/extensions.json
+
+# store documents with prices (bathroom order) stay local
+docs/

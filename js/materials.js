@@ -201,19 +201,41 @@
         g.fillRect(x, y, across ? 2 : 1, across ? 1 : 2);
       }
     }),
-    bathFloor: tileTex("#eceae6", "#cfd6de", 3),    // bathroom floor: 30×30
-    showerTile: tileTex("#e7ecef", "#c5ced6", 3),
-    // bathroom walls: 4×4 hand-glazed turquoise tiles of 15 cm per texture repeat (60 cm)
-    clad: canvasTex(256, 256, (g, w, h) => {
-      const r = rng(23), shades = ["#6fc3c8", "#79cacd", "#66bcc3", "#82cfd1", "#72c5cb"];
-      g.fillStyle = "#e6f1f0"; g.fillRect(0, 0, w, h);
-      for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
-        g.fillStyle = shades[Math.floor(r() * shades.length)];
-        g.fillRect(i * 64 + 2, j * 64 + 2, 60, 60);
-        g.fillStyle = "rgba(255,255,255," + (0.05 + r() * 0.08) + ")";
-        g.fillRect(i * 64 + 6, j * 64 + 6, 26, 20);
+    // bathroom floor: "שיק סטוניקס לבן R10" 60×60 white stone-look porcelain, matte. One repeat = 2×2 tiles (120 cm);
+    // tiles vary a touch (warmer / greyer), faint veins, thin light-grey grout.
+    bathFloor: canvasTex(512, 512, (g, w, h) => {
+      const r = rng(31);
+      g.fillStyle = "#cdd1d2"; g.fillRect(0, 0, w, h);                             // grout
+      for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+        const x = i * 256 + 2, y = j * 256 + 2, s = 252, kind = r(), l = 234 + r() * 12;
+        const base = kind < 0.4 ? [l, l - 1, l - 4] : kind < 0.7 ? [l - 4, l - 3, l - 2] : [l, l, l];   // warmer / greyer / neutral
+        g.fillStyle = "rgb(" + base.map(Math.round).join(",") + ")"; g.fillRect(x, y, s, s);
+        for (let k = 0; k < 7; k++) {                                              // faint veins
+          const c = 150 + r() * 50;
+          g.strokeStyle = "rgba(" + c + "," + c + "," + (c + 6) + "," + (0.06 + r() * 0.12) + ")"; g.lineWidth = 0.6 + r() * 1.8;
+          g.beginPath(); let vx = x + r() * s, vy = y; g.moveTo(vx, vy);
+          for (let t = 0; t < 6; t++) { vx += (r() - 0.5) * 70; vy += s / 6; g.lineTo(vx, vy); }
+          g.stroke();
+        }
+        for (let k = 0; k < 500; k++) { g.fillStyle = "rgba(0,0,0," + (r() * 0.045) + ")"; g.fillRect(x + r() * s, y + r() * s, 1.5, 1.5); }
       }
     }),
+    // bathroom walls: "פצי אפה אקווה מוד" 7.5 × 15 tiles laid vertically in straight stacked columns.
+    // One repeat = 60 cm: 8 columns × 4 rows; hand-made shade variation, light grout.
+    clad: canvasTex(512, 512, (g, w, h) => {
+      const r = rng(23);
+      g.fillStyle = "#e3ebe9"; g.fillRect(0, 0, w, h);                             // grout
+      for (let i = 0; i < 8; i++) for (let j = 0; j < 4; j++) {
+        const x = i * 64 + 1.5, y = j * 128 + 1.5, tw = 61, th = 125;
+        g.fillStyle = "hsl(" + (176 + (r() - 0.5) * 10) + ", " + (38 + (r() - 0.5) * 10) + "%, " + (57 + (r() - 0.5) * 9) + "%)";
+        g.fillRect(x, y, tw, th);
+        const gr = g.createLinearGradient(x, y, x + tw, y + th);                 // uneven glaze
+        gr.addColorStop(0, "rgba(255,255,255," + (0.05 + r() * 0.08) + ")"); gr.addColorStop(1, "rgba(0,40,40," + (0.04 + r() * 0.08) + ")");
+        g.fillStyle = gr; g.fillRect(x, y, tw, th);
+        g.fillStyle = "rgba(0,30,30," + (0.05 + r() * 0.05) + ")"; g.fillRect(x, y + th - 2, tw, 2); g.fillRect(x + tw - 1.5, y, 1.5, th);   // relief
+      }
+    }),
+    splitOak: woodTex("#b58550", "#3e2410", 37, 3.2),   // vanity: "עץ טבעי מבוקע" — warm oak, strong straight grain
     // neutral woven fabric, tinted by the material colour (upholstery colour options)
     weave: canvasTex(128, 128, (g, w, h) => {
       const r = rng(67);
@@ -237,8 +259,9 @@
     newCap: std({ color: "#8f959e", roughness: 1 }),
     ceiling: std({ color: "#f7f6f3", roughness: 1, side: THREE.DoubleSide }),
     floor: std({ map: tex.floor, roughness: 0.55 }),
-    bathFloor: std({ map: tex.bathFloor, roughness: 0.6 }),
-    shower: std({ map: tex.showerTile, roughness: 0.5 }),
+    bathFloor: std({ map: tex.bathFloor, roughness: 0.85 }),             // matte anti-slip stone-look (floor, shower tray, niche)
+    shower: std({ color: "#e9eaea", roughness: 0.8 }),                    // sides of the raised shower tray
+    vanityOak: std({ map: tex.splitOak, roughness: 0.6 }),
     white: std({ color: "#f4f3f0", roughness: 0.7 }),
     whiteGloss: std({ color: "#fbfbfa", roughness: 0.25 }),
     porcelain: std({ color: "#fcfcfb", roughness: 0.18 }),
@@ -263,8 +286,8 @@
     darkGlass: std({ color: "#15171b", roughness: 0.15, metalness: 0.2 }),
     steel: std({ color: "#b7bbc1", roughness: 0.35, metalness: 0.3 }),
     chrome: std({ color: "#d6dadf", roughness: 0.22, metalness: 0.3 }),
-    bronze: std({ color: "#b3895a", roughness: 0.3, metalness: 0.35 }),   // shower fixtures (user's choice)
-    clad: std({ map: tex.clad, roughness: 0.28 }),                        // bathroom wall tiles (user's choice)
+    roseGold: std({ color: "#c4927c", roughness: 0.35, metalness: 0.42 }), // all bathroom taps (Vered VPRO, brushed rose-gold PVD) + shower-screen profiles
+    clad: std({ map: tex.clad, roughness: 0.62 }),                        // bathroom wall tiles, matte
     counter: std({ map: tex.oakLight, roughness: 0.5 }),
     groove: std({ color: "#6b6f75", roughness: 1 }),
     frame: std({ color: "#f3f3f1", roughness: 0.5 }),                     // vitrine + bathroom door frame (white / black option)

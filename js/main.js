@@ -26,7 +26,7 @@
   }
   new ResizeObserver(resize).observe(stage);
   resize();
-  B.goView("over", true);
+  B.sim.setActive(true); B.goView("life", true);   // the page opens in life mode (the switch at the top goes back to design mode)
   document.getElementById("loading").hidden = true;
 
   let last = 0;

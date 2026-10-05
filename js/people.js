@@ -1,5 +1,6 @@
 /* people.js — the two residents. Each body is a joint hierarchy of three.js primitives (hips → torso → head,
- * arms and legs in two parts, feet) with real human proportions, animated procedurally: breathing, blinking,
+ * arms and legs in two parts, hands with fingers, feet) with real human proportions — an egg-shaped head with a chin,
+ * eyelids, arched brows, a smile, a waist, rounded shoulders and joints — animated procedurally: breathing, blinking,
  * weight shifts, walking. Poses for the activities (sitting, lying, typing, drinking, reading, showering, ...)
  * are in POSE below; props (cup, book, phone) hang from the right hand. Looks and outfits are in PEOPLE, matched
  * to Itay's photos (the photos themselves never go into the repo — it is public). Colours are a little darker than
@@ -48,7 +49,7 @@
     const cm = (v) => v * s;                        // lengths follow the height
     const rad = (v) => v * s * b;                   // widths follow the build too
     const mat = (color, rough) => std({ color, roughness: rough === undefined ? 0.95 : rough });
-    const skin = mat(c.skin, 0.72);
+    const skin = mat(c.skin, 0.62);
     const cloth = { top: mat("#888888"), bottom: mat("#888888"), shoes: mat("#444444", 0.55) };
     const hairM = mat(c.hair.color, 0.62);
 
@@ -61,46 +62,68 @@
     };
     const cap = (r, len) => new THREE.CapsuleGeometry(r, len, 4, 14);
     const sph = (r, ws, hs) => new THREE.SphereGeometry(r, ws || 20, hs || 14);
-    const headSc = [1, 1.12, 1.02];
+    const headSc = [1, 1.05, 1.0];
 
     /* ---------- trunk, neck, head (proportions of a 168 cm adult, scaled) ---------- */
     const hipY = cm(86), headR = cm(9.8);
     const hips = J("hips", obj, 0, hipY, 0);
     add("pelvis", cap(rad(11), cm(5)), cloth.bottom, hips, 0, cm(-2), 0, [1.35, 0.85, 0.95]);
     const torso = J("torso", hips, 0, cm(8), 0);                                 // waist pivot
-    add("chest", cap(rad(11), cm(22)), cloth.top, torso, 0, cm(20), 0, [1.45, 1, 0.82]);   // waist to the shoulders
-    add(null, new THREE.CylinderGeometry(rad(4.6), rad(5), cm(8), 12), skin, torso, 0, cm(46), 0);  // neck
+    // trunk: a waist that widens up to the chest; a broad flattened ellipsoid is the shoulder girdle (collarbones to the shoulder tips)
+    add("chest", new THREE.CylinderGeometry(rad(11.2), rad(9.2), cm(34), 24, 1, true), cloth.top, torso, 0, cm(17), 0, [1.45, 1, 0.82]);
+    add("girdle", sph(rad(11.2), 24, 14), cloth.top, torso, 0, cm(36), 0, [1.9, 0.55, 0.82]);
+    add("waist", new THREE.CylinderGeometry(rad(9.2), rad(9.8), cm(4), 24), cloth.top, torso, 0, cm(-1), 0, [1.45, 1, 0.82]);
+    add(null, new THREE.CylinderGeometry(rad(4.6), rad(5.4), cm(10), 14), skin, torso, 0, cm(45), 0);  // neck
+    const collar = add(null, new THREE.TorusGeometry(rad(5.6), cm(1.1), 8, 24), cloth.top, torso, 0, cm(42.5), cm(0.3));
+    collar.rotation.x = Math.PI / 2;                                               // neckline of the top
     const head = J("head", torso, 0, cm(49), 0);
-    const hc = { x: 0, y: cm(10.5), z: cm(0.5) };                                 // head centre, in the head joint's space
+    const hc = { x: 0, y: cm(12), z: cm(0.5) };                                   // cranium centre, in the head joint's space
     add("head", sph(headR, 28, 20), skin, head, hc.x, hc.y, hc.z, headSc);
+    // jaw and chin: a smaller sphere lower and a little forward, so the head is egg-shaped rather than a ball
+    const jaw = { y: -cm(4), z: cm(1.5), r: headR * 0.8, s: [c.gender === "m" ? 0.95 : 0.88, 1.08, 0.96] };
+    add("jaw", sph(jaw.r, 24, 16), skin, head, hc.x, hc.y + jaw.y, hc.z + jaw.z, jaw.s);
+    // z of the face surface on the centre line at height y (relative to the cranium centre): cranium or jaw, whichever is further forward
+    const faceZ = (y) => {
+      const a = y / headSc[1], cz = a * a < headR * headR ? Math.sqrt(headR * headR - a * a) : 0;
+      const t = (y - jaw.y) / jaw.s[1], jz = t * t < jaw.r * jaw.r ? jaw.z + Math.sqrt(jaw.r * jaw.r - t * t) * jaw.s[2] : 0;
+      return Math.max(cz, jz);
+    };
     const face = (geo, m, x, y, z, sc) => add(null, geo, m, head, hc.x + x, hc.y + y, hc.z + z, sc);
 
     /* ---------- face ---------- */
-    const eyeWhite = mat("#f4f1ec", 0.35), iris = mat(c.eyes, 0.3), pupil = mat("#101010", 0.3);
-    const eyes = [-1, 1].map(sd => {
-      const g = new THREE.Group(); g.position.set(hc.x + sd * cm(3.5), hc.y + cm(1.6), hc.z + headR * 0.86); head.add(g);
-      add(null, sph(cm(1.55), 14, 10), eyeWhite, g, 0, 0, 0, [1, 0.85, 0.55]);
-      add(null, sph(cm(0.85), 12, 8), iris, g, 0, 0, cm(0.95), [1, 1, 0.5]);
-      add(null, sph(cm(0.4), 8, 6), pupil, g, 0, 0, cm(1.3), [1, 1, 0.5]);
+    const eyeWhite = mat("#f3f0ea", 0.35), iris = mat(c.eyes, 0.3), pupil = mat("#101010", 0.3), shine = new THREE.MeshBasicMaterial({ color: "#ffffff" });
+    // the features sit on the face surface (faceZ); eyes at the middle of the whole head, brows 2 cm above, hairline 2 cm above those
+    const eyeY = cm(0.8), eyeX = cm(3.4), eyeZ = Math.sqrt(Math.max(0, headR * headR - eyeX * eyeX - (eyeY / headSc[1]) ** 2)) - cm(0.6);
+    const eyes = [-1, 1].map(sd => {                                              // eye: white, iris, pupil, a catch-light, an upper lid
+      const g = new THREE.Group(); g.position.set(hc.x + sd * eyeX, hc.y + eyeY, hc.z + eyeZ); head.add(g);
+      add(null, sph(cm(1.55), 14, 10), eyeWhite, g, 0, 0, 0, [1.0, 0.8, 0.55]);
+      add(null, sph(cm(0.85), 12, 8), iris, g, 0, 0, cm(0.95), [1, 1, 0.45]);
+      add(null, sph(cm(0.4), 8, 6), pupil, g, 0, 0, cm(1.25), [1, 1, 0.45]);
+      add(null, sph(cm(0.18), 6, 4), shine, g, cm(0.3), cm(0.3), cm(1.45));
+      add(null, new THREE.SphereGeometry(cm(1.75), 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.45), skin, g, 0, cm(0.35), cm(-0.15), [1.12, 0.9, 0.62]);
       return g;
     });
-    [-1, 1].forEach(sd => {                                                       // brows
-      const br = face(new THREE.BoxGeometry(cm(4.2), cm(0.7), cm(0.8)), hairM, sd * cm(3.5), cm(4.3), headR * 0.9);
-      br.rotation.z = -sd * 0.12; br.rotation.x = -0.3;
+    [-1, 1].forEach(sd => {                                                       // arched brows, following the curve of the forehead
+      const br = face(new THREE.TorusGeometry(cm(2.4), cm(0.34), 6, 12, 1.5), hairM, sd * cm(3.5), cm(2.9), faceZ(cm(2.9)) - cm(0.5));
+      br.rotation.z = Math.PI / 2 - 0.75 + sd * 0.1; br.rotation.y = sd * 0.55;
     });
-    face(sph(cm(1.3), 12, 8), skin, 0, cm(-0.6), headR * 0.98, [0.75, 1.25, 0.9]);                 // nose
-    face(new THREE.BoxGeometry(cm(3.8), cm(0.7), cm(0.5)), mat("#9b5f55", 0.8), 0, cm(-4.6), headR * 0.9); // mouth
+    face(cap(cm(0.85), cm(2.2)), skin, 0, cm(0.3), faceZ(cm(0.3)) + cm(0.1), [1, 1, 0.9]).rotation.x = -0.4;   // bridge of the nose
+    face(sph(cm(1.35), 12, 8), skin, 0, cm(-1.7), faceZ(cm(-1.7)) + cm(0.55), [0.85, 0.9, 0.9]);          // tip of the nose
+    const lips = mat(c.gender === "m" ? "#a3665c" : "#b86a6c", 0.75), lipZ = faceZ(cm(-5.2)) + cm(c.beard ? 1.1 : 0.1);
+    const smile = face(new THREE.TorusGeometry(cm(3.2), cm(0.42), 6, 18, 1.4), lips, 0, cm(-2.6), lipZ);
+    smile.rotation.z = -Math.PI / 2 - 0.7;                                         // the arc hangs downward: a closed-mouth smile
     [-1, 1].forEach(sd => face(sph(cm(1.9), 10, 8), skin, sd * headR, cm(0.2), 0, [0.45, 1, 0.75]));    // ears
     // hair: a crown cap all round, then sides and back down to the nape, leaving the face open
     const curly = c.hair.style === "curly", long = c.hair.style === "long";
     const hr = headR + cm(curly ? 2.2 : 0.7);
-    face(new THREE.SphereGeometry(hr, 28, 12, 0, Math.PI * 2, 0, Math.PI * (curly ? 0.5 : 0.46)), hairM, 0, cm(curly ? 1.2 : 0.3), 0, headSc);
-    face(new THREE.SphereGeometry(hr, 28, 10, Math.PI * 0.8, Math.PI * 1.4, Math.PI * 0.4, Math.PI * (long ? 0.5 : 0.36)), hairM, 0, cm(0.3), 0, headSc);
+    // crown cap: its lower edge is the hairline, ~2 cm above the brows; the sides-and-back piece starts higher so the two overlap
+    face(new THREE.SphereGeometry(hr, 28, 12, 0, Math.PI * 2, 0, Math.PI * (curly ? 0.37 : 0.36)), hairM, 0, cm(curly ? 1.2 : 0.3), 0, headSc);
+    face(new THREE.SphereGeometry(hr, 28, 10, Math.PI * 0.8, Math.PI * 1.4, Math.PI * 0.33, Math.PI * (long ? 0.57 : 0.43)), hairM, 0, cm(0.3), 0, headSc);
     if (curly) {                                                                   // curls: small bumps over the crown and sides
       const r = (i) => ((i * 7919) % 1000) / 1000;
       for (let i = 0; i < 26; i++) {
         const th = 0.12 + r(i) * 0.5, ph = r(i + 40) * Math.PI * 2;
-        if (th > 0.42 && Math.sin(ph) > 0.35) continue;                            // not over the face
+        if (th > 0.3 && Math.sin(ph) > 0.2) continue;                              // not over the forehead or the face
         const x = Math.sin(th * Math.PI) * Math.cos(ph) * hr, y = Math.cos(th * Math.PI) * hr * 1.12, z = Math.sin(th * Math.PI) * Math.sin(ph) * hr;
         face(sph(cm(1.9 + r(i + 80) * 1.3), 10, 8), hairM, x, y + cm(1.2), z);
       }
@@ -110,28 +133,29 @@
       const fall = add(null, cap(cm(6.5), len - cm(8)), hairM, head, 0, hc.y - len / 2 + cm(1), hc.z - cm(6.5), [1.55, 1, 0.5]);   // down the back
       fall.rotation.x = -0.04;
       add(null, cap(cm(6.2), cm(8)), tips, head, 0, hc.y - len + cm(2), hc.z - cm(6), [1.5, 1, 0.5]);                             // ends
-      [-1, 1].forEach(sd => {                                                      // strands in front of the shoulders
+      [-1, 1].forEach(sd => {                                                      // loose strands beside the face, falling in front of the shoulders
         const l2 = len * 0.62;
-        add(null, cap(cm(2.6), l2 - cm(6)), hairM, head, sd * cm(8.4), hc.y - l2 / 2 - cm(2), hc.z + cm(2.5), [1, 1, 0.9]);
-        add(null, cap(cm(2.5), cm(6)), tips, head, sd * cm(8.4), hc.y - l2 - cm(1), hc.z + cm(2.5), [1, 1, 0.9]);
-        const wave = add(null, cap(cm(1.6), cm(10)), hairM, head, sd * cm(10.5), hc.y - cm(6), hc.z - cm(1), [1, 1, 0.9]);        // a loose wave by the ear
-        wave.rotation.z = sd * 0.25;
+        add(null, cap(cm(1.6), l2 - cm(6)), hairM, head, sd * cm(9.4), hc.y - l2 / 2 - cm(2), hc.z + cm(1.2), [1, 1, 0.85]);
+        add(null, cap(cm(1.5), cm(6)), tips, head, sd * cm(9.4), hc.y - l2 - cm(1), hc.z + cm(1.2), [1, 1, 0.85]);
+        const wave = add(null, cap(cm(1.2), cm(9)), hairM, head, sd * cm(10.6), hc.y - cm(5), hc.z - cm(2), [1, 1, 0.9]);          // a wave by the ear
+        wave.rotation.z = sd * 0.2;
       });
     }
     if (c.beard) {
       const beardM = mat(c.beard, 0.85);
-      face(new THREE.SphereGeometry(headR + cm(0.6), 24, 10, Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.64, Math.PI * 0.32), beardM, 0, cm(-0.2), 0, headSc);
-      face(new THREE.BoxGeometry(cm(4.6), cm(1.1), cm(0.9)), beardM, 0, cm(-3.2), headR * 0.93, [1, 1, 1]).rotation.x = -0.2;    // moustache
+      face(new THREE.SphereGeometry(headR + cm(0.5), 24, 10, Math.PI * 0.1, Math.PI * 0.8, Math.PI * 0.62, Math.PI * 0.3), beardM, 0, 0, 0, headSc);   // cheeks
+      add(null, new THREE.SphereGeometry(jaw.r + cm(0.7), 24, 12, Math.PI * 0.08, Math.PI * 0.84, Math.PI * 0.45, Math.PI * 0.52), beardM, head, hc.x, hc.y + jaw.y, hc.z + jaw.z, jaw.s);   // chin
+      face(new THREE.BoxGeometry(cm(4.6), cm(1.1), cm(0.9)), beardM, 0, cm(-3.3), faceZ(cm(-3.3)) + cm(0.8)).rotation.x = -0.2;      // moustache
     }
     if (c.necklace) {                                                              // thin chain at the base of the neck
-      const chain = add(null, new THREE.TorusGeometry(rad(5.4), cm(0.22), 6, 32), std({ color: c.necklace, roughness: 0.35, metalness: 0.4 }), torso, 0, cm(43), cm(1));
+      const chain = add(null, new THREE.TorusGeometry(rad(5.8), cm(0.22), 6, 32), std({ color: c.necklace, roughness: 0.35, metalness: 0.4 }), torso, 0, cm(41.5), cm(1.2));
       chain.rotation.x = Math.PI / 2 + 0.25;
     }
-    if (c.glasses) {                                                               // round frames
-      const gm = mat("#3a2a1e", 0.4);
-      [-1, 1].forEach(sd => face(new THREE.TorusGeometry(cm(3.4), cm(0.28), 6, 24), gm, sd * cm(3.6), cm(1.6), headR * 0.98));
-      face(new THREE.BoxGeometry(cm(1.6), cm(0.3), cm(0.3)), gm, 0, cm(2), headR);
-      [-1, 1].forEach(sd => face(new THREE.BoxGeometry(cm(0.3), cm(0.3), cm(10)), gm, sd * cm(7), cm(2.2), headR * 0.55));
+    if (c.glasses) {                                                               // round frames, temples angled back to the ears
+      const gm = mat("#3a2a1e", 0.4), gz = faceZ(eyeY) + cm(0.9);
+      [-1, 1].forEach(sd => { face(new THREE.TorusGeometry(cm(3.4), cm(0.28), 6, 24), gm, sd * cm(3.6), eyeY, gz).rotation.y = sd * 0.25; });
+      face(new THREE.BoxGeometry(cm(1.2), cm(0.3), cm(0.3)), gm, 0, eyeY + cm(0.4), gz);
+      [-1, 1].forEach(sd => { face(new THREE.BoxGeometry(cm(0.3), cm(0.3), cm(10.5)), gm, sd * cm(8.6), eyeY + cm(0.5), gz / 2 - cm(0.3)).rotation.y = -sd * 0.3; });
     }
 
     /* ---------- arms and legs ---------- */
@@ -149,18 +173,29 @@
     }
     [-1, 1].forEach(sd => {
       const L = sd < 0 ? "L" : "R";
-      const ua = J("uArm" + L, torso, sd * rad(17.5), cm(44), 0);
+      const ua = J("uArm" + L, torso, sd * rad(18.2), cm(37), 0);                           // shoulder tip, just under the girdle's top
+      add("shoulder" + L, sph(rad(5.2), 16, 12), cloth.top, ua, 0, 0, 0);                   // deltoid: rounds off the shoulder
       add("uArm" + L, cap(rad(4.8), cm(22)), cloth.top, ua, 0, cm(-15), 0);
       if (tattooMat && L === "L") add(null, cap(rad(4.85), cm(22)), tattooMat, ua, 0, cm(-15), 0).rotation.y = -Math.PI * 0.55;   // outer side of the left arm
+      add("sleeve" + L, new THREE.TorusGeometry(rad(4.9), cm(0.7), 8, 20), cloth.top, ua, 0, cm(-24), 0).rotation.x = Math.PI / 2;   // hem of a short sleeve
       const la = J("lArm" + L, ua, 0, cm(-30), 0);
+      add("elbow" + L, sph(rad(4.2), 14, 10), skin, la, 0, 0, 0);                           // fills the elbow when it bends
       add("lArm" + L, cap(rad(4), cm(16)), skin, la, 0, cm(-11), 0);
-      add("hand" + L, cap(cm(3), cm(6)), skin, la, 0, cm(-25), 0, [1, 1, 0.55]);
+      // hand: a flat palm, four slightly curled fingers and a thumb on the inner side
+      add("hand" + L, cap(cm(3.2), cm(4.5)), skin, la, 0, cm(-24), cm(0.3), [1, 1, 0.5]);
+      [-2.3, -0.8, 0.7, 2.2].forEach(fx => { add(null, cap(cm(0.72), cm(3.6 - Math.abs(fx) * 0.35)), skin, la, cm(fx) * b, cm(-29.4), cm(0.3)).rotation.x = -0.3; });
+      const thumb = add(null, cap(cm(0.8), cm(3)), skin, la, -sd * cm(3.2), cm(-25.5), cm(1.4)); thumb.rotation.z = -sd * 0.9; thumb.rotation.x = -0.4;
       const ul = J("uLeg" + L, hips, sd * rad(9), 0, 0);
+      add("hip" + L, sph(rad(7.6), 14, 10), cloth.bottom, ul, 0, cm(-1), 0);
       add("uLeg" + L, cap(rad(7.6), cm(24)), cloth.bottom, ul, 0, cm(-19.5), 0);
       const ll = J("lLeg" + L, ul, 0, cm(-39), 0);
+      add("knee" + L, sph(rad(5.6), 14, 10), cloth.bottom, ll, 0, 0, 0);                    // fills the knee when it bends
       add("lLeg" + L, cap(rad(5.4), cm(27)), cloth.bottom, ll, 0, cm(-20), 0);
+      add("hem" + L, new THREE.TorusGeometry(rad(5.5), cm(0.6), 8, 20), cloth.bottom, ll, 0, cm(-34), 0).rotation.x = Math.PI / 2;   // trouser hem
       const ft = J("foot" + L, ll, 0, cm(-40), 0);
+      add("ankle" + L, sph(rad(3.8), 12, 8), skin, ft, 0, cm(0.5), 0);
       add("foot" + L, cap(cm(4.6), cm(15)), cloth.shoes, ft, 0, cm(-3.2), cm(5.5), [1.05, 1, 0.72]).rotation.x = Math.PI / 2;
+      add("sole" + L, new THREE.BoxGeometry(cm(9), cm(1.2), cm(23)), mat("#2a2a2a", 0.8), ft, 0, cm(-6.3), cm(5.5));   // shoe sole
     });
 
     /* ---------- selection ring, click target, name label ---------- */
@@ -192,12 +227,16 @@
       p.outfit = name;
       const top = o.top ? (cloth.top.color.set(o.top), cloth.top) : skin;
       const bottom = o.bottom ? (cloth.bottom.color.set(o.bottom), cloth.bottom) : skin;
-      parts.chest.material = top; parts.pelvis.material = bottom;
+      ["chest", "girdle", "waist"].forEach(n => { parts[n].material = top; });
+      parts.pelvis.material = bottom; collar.material = top; collar.visible = !!o.top;
       ["L", "R"].forEach(sd => {
-        parts["uArm" + sd].material = o.sleeves === "none" ? skin : top;
-        parts["lArm" + sd].material = o.sleeves === "long" ? top : skin;
-        parts["uLeg" + sd].material = bottom;
-        parts["lLeg" + sd].material = o.legs === "long" ? bottom : skin;
+        parts["shoulder" + sd].material = parts["uArm" + sd].material = o.sleeves === "none" ? skin : top;
+        parts["sleeve" + sd].material = top; parts["sleeve" + sd].visible = o.sleeves === "short";
+        parts["elbow" + sd].material = parts["lArm" + sd].material = o.sleeves === "long" ? top : skin;
+        parts["hip" + sd].material = parts["uLeg" + sd].material = bottom;
+        parts["knee" + sd].material = parts["lLeg" + sd].material = o.legs === "long" ? bottom : skin;
+        parts["hem" + sd].material = bottom; parts["hem" + sd].visible = o.legs === "long";
+        parts["sole" + sd].visible = !!o.shoes;
         parts["foot" + sd].material = o.shoes ? (cloth.shoes.color.set(o.shoes), cloth.shoes) : skin;
       });
     }

@@ -22,7 +22,7 @@
   const BODY = 22;                   // body radius: residents keep ~2 × this apart
   const CUT_H = 40;                  // cut walls drop to this height
   // Doors open while a resident walks through the zone in front of them (plan rects), and close behind.
-  const DOOR_ZONES = { entry: [428, 522, 316, 434], bath: [294, 394, 598, 692] };
+  const DOOR_ZONES = { entry: [428, 522, 316, 434], bath: [294, 394, 598, 692], shower: [222, 266, 646, 714] };
   const doorByName = (n) => doors.find(d => d.name === n);
   const wardrobeFront = () => nav.OBJECTS.find(o => o.key === "wardrobe").dyn()[1];   // x of the wardrobe doors
 
@@ -70,7 +70,7 @@
     ], end: (p) => { setShower(false); p.setOutfit(p.wear); } },
     toilet: { inf: "ללכת לשירותים", now: ["בשירותים", "בשירותים"], going: "בדרך לשירותים", steps: () => [
       { go: [422, 688, 0] },
-      { pose: { name: "toilet", seat: 42 }, at: [422, 737, Math.PI] },
+      { pose: { name: "toilet", seat: 44 }, at: [422, 735, Math.PI] },
     ] },
     wash:   { inf: "לרחוץ ידיים", now: ["רוחץ ידיים", "רוחצת ידיים"], steps: () => [
       { go: [312, 714, 0] },

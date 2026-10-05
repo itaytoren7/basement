@@ -30,8 +30,8 @@
     { key: "floorLamp", name: "מנורת העמידה", rect: [411, 439, 456, 484] },
     { key: "alcoveCloset", name: "הארון בגומחה", rect: [473, 547, 485, 638] },
     { key: "vanity", name: "הכיור", rect: [263, 362, 731, 778] },
-    { key: "toilet", name: "האסלה", rect: [404, 440, 704, 760] },
-    { key: "showerGlass", name: "המקלחון", rect: [241, 246, 686, 778] },
+    { key: "toilet", name: "האסלה", rect: [404, 440, 706, 758] },     // wall-hung bowl; the cistern wall behind it comes from WALLS
+    { key: "showerGlass", name: "המקלחון", rect: [241, 246, 708, 778] }, // the fixed panel; the door (z 648–708) is the way in
     { key: "niche", name: "נישת המדפים", rect: [483, 547, 648, 720] },
     { key: "wardrobe", name: "ארון הבגדים", dyn: () => { const o = WARDS[state.ward]; const z0 = o.z0 === undefined ? 398 : o.z0; return [WX, WX + o.d, z0, z0 + (o.w || 240)]; } },
     { key: "kitchen", name: "המטבחון", dyn: () => [170, 170 + state.kitchen, 578, 638] },
