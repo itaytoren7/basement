@@ -174,10 +174,10 @@
   const SOFAS = {
     // IKEA KIVIK 3-seat, 228 × 95 × 83, Tibbleby beige/grey — the decision (and the shopping list). Seat 45, seat depth 60.
     kivik: { x0: 162, x1: 390, z0: 423, z1: 518, seatH: 45, backFront: 483, seats: [231, 321], fabric: "tibbleby", label: "ספה KIVIK" },
-    // Green 3-seat from a store photo Itay sent (Nov 2026). Length 220 (Itay); depth 90 and height 84 are assumed.
+    // "Jasmin" 3-seat in green, from a store photo Itay sent (Nov 2026). 220 wide × 88 deep × 90 high (Itay); seat 47 assumed.
     // Slim arms set back from the seat front, 2 seat + 2 back cushions in olive-green woven fabric, 2 small pillows,
     // black tapered metal legs. Centred on x 276 like KIVIK.
-    green: { x0: 166, x1: 386, z0: 423, z1: 513, seatH: 47, backFront: 481, seats: [227, 325], fabric: "olive", label: "ספה ירוקה" },
+    green: { x0: 166, x1: 386, z0: 423, z1: 511, seatH: 47, backFront: 479, seats: [227, 325], fabric: "olive", label: "ספה Jasmin" },
   };
   const SOFA = Object.assign({}, SOFAS.kivik);
   // a back cushion leaning back 10°: bottom-front edge on the seat at (z, y), top-front edge at height `top`
@@ -223,10 +223,10 @@
         leg.position.set(x - CX, legH / 2, z - CZ); leg.rotation.set(sz * 0.08, 0, -sx * 0.08); leg.castShadow = true; g.add(leg);
       }));
       soft(x0 + 1, x1 - 1, z0 + 2, z1 - 1, legH, 30, [0.6, 0.8, 0.8], M.kivik, g);                 // upholstered base rail
-      soft(x0 + arm, x1 - arm, z1 - 14, z1, 28, 64, [0.6, 1, 0.6], M.kivik, g);                   // back frame, behind the cushions
+      soft(x0 + arm, x1 - arm, z1 - 14, z1, 28, 68, [0.6, 1, 0.6], M.kivik, g);                   // back frame, behind the cushions
       [[x0, x0 + arm], [x1 - arm, x1]].forEach(([a, b]) => soft(a, b, z0 + 12, z1, 28, 62, [0.8, 1.2, 0.8], M.kivik, g));   // slim arms, set back from the seat front
       [[x0 + 1, mid], [mid, x1 - 1]].forEach(([a, b]) => soft(a + 0.4, b - 0.4, z0, z1 - 16, 30, seatH, [1, 1.6, 1], M.kivik, g));   // 2 seat cushions, full width
-      [[x0 + arm + 4, mid], [mid, x1 - arm - 4]].forEach(([a, b]) => backCushion(a + 0.5, b - 0.5, backFront, seatH, 84, 19, g));    // 2 big back cushions, top at 84
+      [[x0 + arm + 4, mid], [mid, x1 - arm - 4]].forEach(([a, b]) => backCushion(a + 0.5, b - 0.5, backFront, seatH, 90, 19, g));    // 2 big back cushions, top at 90 (the full height)
       pillow(36, M.kivik, x0 + arm + 15, seatH + 17, backFront - 12, -0.5, -0.12, 0.35, g);         // 2 small pillows against the arms
       pillow(36, M.kivik, x1 - arm - 15, seatH + 17, backFront - 12, 0.5, 0.12, 0.35, g);
       return g;
