@@ -40,8 +40,10 @@
    * keep: the activity stays "current" after its last step (outside the house); otherwise the resident is just standing again.
    * going: status text while walking there (default: הולך/הולכת + inf).
    */
-  const SOFA_SEATS = { itay: 231, mia: 321 };                       // x of the two seat cushions
-  const sofaSeatFor = (p) => { const o = other(p); return (o.act && o.act.seat !== undefined && o.act.seat === SOFA_SEATS[p.key]) ? SOFA_SEATS[o.key] : SOFA_SEATS[p.key]; };
+  // the current sofa model (B.SOFA): x of its two seat cushions, its seat height, and where a seated body sits (z)
+  const SOFA_SEATS = () => ({ itay: B.SOFA.seats[0], mia: B.SOFA.seats[1] });
+  const sofaSit = () => B.SOFA.backFront - 15;
+  const sofaSeatFor = (p) => { const s = SOFA_SEATS(), o = other(p); return (o.act && o.act.seat !== undefined && o.act.seat === s[p.key]) ? s[o.key] : s[p.key]; };
   const other = (p) => people[order.find(k => k !== p.key)];
   // the armchair the other one is not sitting in: W (faces east) unless taken, then E (faces west)
   const armchairFor = (p) => {
@@ -83,12 +85,12 @@
     ], end: () => setDeskScreen(false) },
     sofa:   { inf: "לשבת על הספה", now: ["יושב על הספה", "יושבת על הספה"], steps: (p) => { const x = sofaSeatFor(p); p.act.seat = x; return [
       { go: [x, 405, Math.PI] },
-      { pose: { name: "sit", seat: 45 }, at: [x, 468, Math.PI] },
+      { pose: { name: "sit", seat: B.SOFA.seatH }, at: [x, sofaSit(), Math.PI] },
     ]; } },
     tv:     { inf: "לראות טלוויזיה", now: ["רואה טלוויזיה", "רואה טלוויזיה"], steps: (p) => { const x = sofaSeatFor(p); p.act.seat = x; return [
       { go: [x, 405, Math.PI] },
       { fn: () => setTv(true) },
-      { pose: { name: "sit", seat: 45, headDown: -0.06 }, at: [x, 468, Math.PI] },
+      { pose: { name: "sit", seat: B.SOFA.seatH, headDown: -0.06 }, at: [x, sofaSit(), Math.PI] },
     ]; }, end: (p) => { if (!(other(p).act && other(p).act.key === "tv")) setTv(false); } },
     coffee: { inf: "לשתות קפה", now: ["שותה קפה", "שותה קפה"], steps: (p) => { const c = armchairFor(p); return [
       { go: [195, 555, 0] },
@@ -112,8 +114,8 @@
     ] },
     // for the two of them
     sofaBoth: { inf: "לשבת יחד על הספה", now: ["יושבים יחד על הספה"], both: true, steps: (p) => [
-      { go: [SOFA_SEATS[p.key], 405, Math.PI] },
-      { pose: { name: "sit", seat: 45, headYaw: p.key === "itay" ? 0.35 : -0.35 }, at: [SOFA_SEATS[p.key], 468, Math.PI] },
+      { go: [SOFA_SEATS()[p.key], 405, Math.PI] },
+      { pose: { name: "sit", seat: B.SOFA.seatH, headYaw: p.key === "itay" ? 0.35 : -0.35 }, at: [SOFA_SEATS()[p.key], sofaSit(), Math.PI] },
     ] },
     talk:   { inf: "לדבר", now: ["מדברים"], both: true, steps: (p) => [
       { go: p.key === "itay" ? [254, 405, Math.PI / 2] : [316, 405, -Math.PI / 2] },
@@ -151,7 +153,9 @@
     if (s.go) {
       const g = typeof s.go === "function" ? s.go() : s.go, o = other(p), nxt = a.steps[a.i + 1];
       const spots = nxt && nxt.at ? [g, nxt.at] : [g];              // the spot itself, and the seat it leads to
-      const taken = !o.away && !o.path && spots.some(q => Math.hypot(o.pos.x - q[0], o.pos.z - q[1]) < 40);   // the other one is there
+      // the other one is there, using the spot (not just standing on it while waiting too — that would deadlock both)
+      const taken = !o.away && !o.path && !(o.act && o.act.waiting) && spots.some(q => Math.hypot(o.pos.x - q[0], o.pos.z - q[1]) < 40);
+      a.waiting = taken;
       if (!a.started) { if (taken) return; a.started = true; if (!goTo(p, g[0], g[1], { yaw: g[2] })) { next(p); return; } }
       else if (!p.path && !p.goal && p.faceYaw === undefined) {
         if (taken) { a.started = false; return; }                   // wait a step away until the spot is free, then go again
@@ -283,7 +287,7 @@
   };
   nav.OBJECTS.forEach(o => {
     const act = OBJECT_ACTS[o.key]; if (!act) return;
-    const r = o.key === "wardrobe" ? [20, 90, 388, 638] : o.key === "kitchen" ? [170, 290, 578, 638] : o.rect;
+    const r = o.key === "wardrobe" ? [20, 90, 388, 638] : o.key === "kitchen" ? [170, 290, 578, 638] : (o.rect || o.dyn());
     objBox(act, r[0], r[1], r[2], r[3], 0, o.key === "wardrobe" ? 200 : o.key === "kitchen" ? 125 : o.key === "bed" ? 60 : 90);
   });
   objBox("leave", 468, 490, 328, 422, 0, 205);                     // the entry door

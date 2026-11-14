@@ -80,6 +80,7 @@
     const e = document.createElement("div"); e.className = "lab" + (l[4] ? " " + l[4] : ""); e.textContent = l[0];
     labelWrap.appendChild(e); return { e, v: V(l[1], l[2], l[3]) };
   });
+  const sofaLabel = labelEls[LABELS.findIndex(l => l[0] === "ספה KIVIK")].e;   // follows the sofa model
   let labelsOn = true;
   const tmpV = new THREE.Vector3();
   function updateLabels() {
@@ -234,6 +235,13 @@
     });
   }
   UPHOLSTERY.forEach(u => radios(u.id, syncFabrics));
+  // Sofa model: show it, move the sofa colour picker to the model's own colour, update the gaps and the label.
+  radios("sofaModel", v => {
+    B.setSofa(v);
+    document.getElementById("sofaFabric-" + B.SOFAS[v].fabric).checked = true;
+    syncFabrics(); updateSofaKv();
+    sofaLabel.textContent = B.SOFA.label;
+  });
 
   const chip = (group, p, color, checked) =>
     "<input type='radio' name='" + group + "' id='" + group + "-" + p.k + "' value='" + p.k + "'" + (checked ? " checked" : "") + ">" +

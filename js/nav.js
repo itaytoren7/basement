@@ -26,7 +26,7 @@
     { key: "armchairW", name: "הכורסה", rect: [132, 208, 298, 383] },
     { key: "armchairE", name: "הכורסה", rect: [366, 442, 298, 383] },
     { key: "coffeeTable", name: "שולחן הקפה", rect: [247, 327, 307, 382] },
-    { key: "sofa", name: "הספה", rect: [162, 390, 423, 518] },
+    { key: "sofa", name: "הספה", dyn: () => [B.SOFA.x0, B.SOFA.x1, B.SOFA.z0, B.SOFA.z1] },   // the sofa model picked in the panel
     { key: "floorLamp", name: "מנורת העמידה", rect: [411, 439, 456, 484] },
     { key: "alcoveCloset", name: "הארון בגומחה", rect: [473, 547, 485, 638] },
     { key: "vanity", name: "הכיור", rect: [263, 362, 731, 778] },
@@ -173,8 +173,9 @@
   }
 
   // the wardrobe and kitchenette options change the obstacles
-  const bw = B.buildWardrobe, bk = B.buildKitchen;
+  const bw = B.buildWardrobe, bk = B.buildKitchen, bs = B.setSofa;
   B.buildWardrobe = (key) => { bw(key); state.ward = key; rebuild(); };
+  B.setSofa = (key) => { bs(key); rebuild(); };
   B.buildKitchen = (L) => { bk(L); state.kitchen = Math.max(110, Math.min(120, +L || 110)); rebuild(); };
   rebuild();
 

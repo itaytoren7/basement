@@ -322,6 +322,9 @@
       { key: "walnut", name: "חום אגוז", color: "#6c4930" },
       { key: "chocolate", name: "שוקולד", color: "#43302a" },
     ] },
+    { family: "ירוק", items: [
+      { key: "olive", name: "ירוק זית", color: "#5d6347" },               // the green sofa's fabric (store photo)
+    ] },
     { family: "כהה", items: [
       { key: "charcoal", name: "פחם כהה", color: "#473f4d" },
     ] },
